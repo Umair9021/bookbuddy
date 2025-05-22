@@ -1,6 +1,7 @@
 'use client';
 
-import { useSelector } from 'react-redux';
+import { Search, Upload, BookOpen, MessageSquare } from 'lucide-react'
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import images from './data';
@@ -8,10 +9,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function HomePage() {
-  const books = useSelector((state) => state.books.books);
-
+  
   return (
     <div className="min-h-screen flex flex-col bg-muted">
+
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-10">
         {/* Top Section: Welcome + 4 Blocks */}
@@ -30,86 +31,113 @@ export default function HomePage() {
           {/* Right: 4 Large Blocks */}
           <div className="md:w-3/5 w-full flex flex-col ">
             <div className="grid grid-cols-2 grid-rows-2 gap-6 h-full min-h-[200px]">
-              <div className="ml-50 bg-white rounded-xl shadow-lg flex items-center justify-center font-semibold text-base min-h-[70px] md:min-h-[90px] lg:min-h-[100px] px-2 max-w-xs w-3/5 mx-auto transition-all">Block 1</div>
-              <div className="bg-white rounded-xl shadow-lg flex items-center justify-center font-semibold text-base min-h-[70px] md:min-h-[90px] lg:min-h-[100px] px-2 max-w-xs w-3/5 mx-auto transition-all">Block 2</div>
-              <div className="ml-50 bg-white rounded-xl shadow-lg flex items-center justify-center font-semibold text-base min-h-[70px] md:min-h-[90px] lg:min-h-[100px] px-2 max-w-xs w-3/5 mx-auto transition-all">Block 3</div>
-              <div className="bg-white rounded-xl shadow-lg flex items-center justify-center font-semibold text-base min-h-[70px] md:min-h-[90px] lg:min-h-[100px] px-2 max-w-xs w-3/5 mx-auto transition-all">Block 4</div>
-            </div>
+            <Link href="/search" className="w-50 ml-60 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-xl hover:-translate-y-1 border border-gray-100 hover:border-primary/20" >
+                <div className="bg-primary/10 p-3 rounded-full mb-3">
+                  <Search className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg text-center">Search Any Book</h3>
+                <p className="text-sm text-muted-foreground text-center mt-1">Find exactly what you need</p>
+            </Link>
+              
+              {/* Upload Book */}
+              <div className="w-50 ml-20 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-xl hover:-translate-y-1 border border-gray-100 hover:border-primary/20">
+                <div className="bg-primary/10 p-3 rounded-full mb-3">
+                  <Upload className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg text-center">Upload Book</h3>
+                <p className="text-sm text-muted-foreground text-center mt-1">Sell your used textbooks</p>
+              </div>
+              
+              {/* See All Books */}
+              <div className="w-50 ml-60 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-xl hover:-translate-y-1 border border-gray-100 hover:border-primary/20">
+                <div className="bg-primary/10 p-3 rounded-full mb-3">
+                  <BookOpen className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg text-center">See All Books</h3>
+                <p className="text-sm text-muted-foreground text-center mt-1">Browse our full collection</p>
+              </div>
+              
+              <div className="w-50 ml-20 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center transition-all hover:shadow-xl hover:-translate-y-1 border border-gray-100 hover:border-primary/20">
+  <div className="bg-primary/10 p-3 rounded-full mb-3">
+    <MessageSquare className="w-6 h-6 text-primary" />  {/* Changed icon to chat */}
+  </div>
+  <h3 className="font-semibold text-lg text-center">Start Chatting</h3>
+  <p className="text-sm text-muted-foreground text-center mt-1">Get instant help or answers</p>
+</div>
+             </div>
           </div>
         </div>
-        {/* Centered Big Boxes Section */}
-        <div className="flex flex-col items-center mt-18">
-          <div className="flex flex-col md:flex-row w-full justify-around">
-            {/* First Carousel with Heading */}
-            <div className="flex flex-col items-center">
-              <h3 className="text-xl font-semibold text-primary mb-4 hover:underline">First Year Books</h3>
-              <Carousel className="w-full md:w-96 h-48 max-w-xs relative">
-                <CarouselContent>
-                  {images.map((img, idx) => (
-                    <CarouselItem key={img.id || idx} className="h-full flex items-center justify-center p-0">
-                      <Card className="w-full h-full flex items-center justify-center">
-                        <CardContent className="flex items-center justify-center w-full h-full p-0">
-                          <img src={img.url} alt={img.title} className="w-full h-full object-cover rounded" />
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <div className="absolute left-4 top-[60%] -translate-y-1/2 z-10">
-                  <CarouselPrevious />
-                </div>
-                <div className="absolute right-4 top-[60%] -translate-y-1/2 z-10">
-                  <CarouselNext />
-                </div>
-              </Carousel>
+        <div className='w-full  py-5'>
+            <div className="flex flex-col items-center w-full px-4">
+               <h3 className="text-2xl font-bold text-primary mb-4 hover:underline">First Year Books</h3>
+               <div className="w-full max-w-6xl mx-auto bg-gray-100 rounded-xl shadow-sm p-6"> {/* Added white container */}
+               <Carousel className="w-full">
+      <CarouselContent className="-ml-1">
+        {images.map((img, idx) => (
+          <CarouselItem key={img.id || idx} className="pl-1 md:basis-1/2 lg:basis-1/3">
+            <div className="p-1">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                <img src={img.url} alt={img.title} className="w-full h-full object-cover rounded" />
+                </CardContent>
+              </Card>
             </div>
-            {/* Second Carousel with Heading */}
-            <div className="flex flex-col items-center">
-               <h3 className="text-xl font-semibold text-primary mb-4 hover:underline">Second Year Books</h3>
-              <Carousel className="w-full md:w-96 h-48 max-w-xs relative">
-                <CarouselContent>
-                  {images.map((img, idx) => (
-                    <CarouselItem key={img.id || idx} className="h-full flex items-center justify-center p-0">
-                      <Card className="w-full h-full flex items-center justify-center">
-                        <CardContent className="flex items-center justify-center w-full h-full p-0">
-                          <img src={img.url} alt={img.title} className="w-full h-full object-cover rounded" />
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <div className="absolute left-4 top-[60%] -translate-y-1/2 z-10">
-                  <CarouselPrevious />
-                </div>
-                <div className="absolute right-4 top-[60%] -translate-y-1/2 z-10">
-                  <CarouselNext />
-                </div>
-              </Carousel>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious className="hidden sm:flex"/>
+      <CarouselNext />
+    </Carousel>
+    </div>
             </div>
-            {/* Third Carousel with Heading */}
-            <div className="flex flex-col items-center">
-               <h3 className="text-xl font-semibold text-primary mb-4 hover:underline">Third Year Books</h3>
-              <Carousel className="w-full md:w-96 h-48 max-w-xs relative">
-                <CarouselContent>
-                  {images.map((img, idx) => (
-                    <CarouselItem key={img.id || idx} className="h-full flex items-center justify-center p-0">
-                      <Card className="w-full h-full flex items-center justify-center">
-                        <CardContent className="flex items-center justify-center w-full h-full p-0">
-                          <img src={img.url} alt={img.title} className="w-full h-full object-cover rounded" />
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <div className="absolute left-4 top-[60%] -translate-y-1/2 z-10">
-                  <CarouselPrevious />
-                </div>
-                <div className="absolute right-4 top-[60%] -translate-y-1/2 z-10">
-                  <CarouselNext />
-                </div>
-              </Carousel>
+        </div>
+        <div className='w-full py-5'>
+            <div className="flex flex-col items-center w-full px-4">
+               <h3 className="text-2xl font-bold text-primary mb-4 hover:underline">Second Year Books</h3>
+               <div className="w-full max-w-6xl mx-auto bg-gray-100 rounded-xl shadow-sm p-6"> 
+               <Carousel className="w-full">
+      <CarouselContent className="-ml-1">
+        {images.map((img, idx) => (
+          <CarouselItem key={img.id || idx} className="pl-1 md:basis-1/2 lg:basis-1/3">
+            <div className="p-1">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                <img src={img.url} alt={img.title} className="w-full h-full object-cover rounded" />
+                </CardContent>
+              </Card>
             </div>
-          </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious className="hidden sm:flex"/>
+      <CarouselNext />
+    </Carousel>
+    </div>
+    </div>
+    </div>
+        <div className='w-full py-8'>
+            <div className="flex flex-col items-center w-full px-4">
+               <h3 className="text-2xl font-bold text-primary mb-4 hover:underline">Third Year Books</h3>
+               <div className="w-full max-w-6xl mx-auto bg-gray-100 rounded-xl shadow-sm p-6"> 
+               <Carousel className="w-full">
+      <CarouselContent className="-ml-1">
+        {images.map((img, idx) => (
+          <CarouselItem key={img.id || idx} className="pl-1 md:basis-1/2 lg:basis-1/3">
+            <div className="p-1">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                <img src={img.url} alt={img.title} className="w-full h-full object-cover rounded" />
+                </CardContent>
+              </Card>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>
+    </div>
+        </div>
         </div>
       </main>
       <Footer />

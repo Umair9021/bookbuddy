@@ -89,7 +89,7 @@ function Carousel({
       }}>
       <div
         onKeyDownCapture={handleKeyDown}
-        className={cn("relative", className)}
+        className={cn("relative w-full", className)}
         role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
@@ -109,7 +109,7 @@ function CarouselContent({
   return (
     <div
       ref={carouselRef}
-      className="overflow-hidden"
+      className="overflow-hidden w-full"
       data-slot="carousel-content">
       <div
         className={cn(
