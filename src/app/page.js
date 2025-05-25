@@ -17,7 +17,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 
 
-const YearCarousel = ({ year, title,filter }) => {
+const YearCarousel = ({title,filter }) => {
   return (
      
     <div className="w-full py-5">
@@ -157,9 +157,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <YearCarousel year="first" title="First Year Books" filter="laptops"/>
-        <YearCarousel year="second" title="Second Year Books" filter="mens-shirts"/>
-        <YearCarousel year="third" title="Third Year Books" filter="fragrances"/>
+        <YearCarousel  title="First Year Books" filter="laptops"/>
+        <YearCarousel  title="Second Year Books" filter="mens-shirts"/>
+        <YearCarousel  title="Third Year Books" filter="fragrances"/>
       </main>
       <Footer />
     </div>

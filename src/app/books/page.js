@@ -14,6 +14,18 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
+
+const navigation = [
+  { name: 'All Books', href: '/books', current: false, filter: null },
+  { name: 'First Year', href: '/books', current: false, filter: 'laptops'},
+  { name: 'Second Year', href: '/books', current: false, filter: 'mens-shirts'},
+  { name: 'Third Year', href: '/books', current: false, filter: 'fragrances'},
+  // { name: 'Recently Uploaded', href: '/books', current: false, filter: 'recent'},
+]
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
+}
 
 const ITEMS_PER_PAGE = 16;
 
@@ -23,6 +35,11 @@ export default function AllBooksPage() {
   const router = useRouter();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
+  const updatednavigation = navigation.map(item=>({
+    ...item,
+    current: item.filter === filter || (!filter && item.filter === null)
+  }));
+
   const filteredbooks = filter?books.filter(book=>{
     if(filter === 'laptops') return book.category === 'laptops';
     if(filter === 'mens-shirts') return book.category === 'mens-shirts';
@@ -31,7 +48,7 @@ export default function AllBooksPage() {
   }):books;
 
 
-  // Calculate total pages
+  // Calculate total pages  
   const totalPages = Math.ceil(filteredbooks.length / ITEMS_PER_PAGE);
 
   // Get current page items
@@ -93,6 +110,7 @@ export default function AllBooksPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen flex flex-col bg-muted">
       <Navbar />
       <div className="bg-white">
@@ -105,22 +123,59 @@ export default function AllBooksPage() {
               : 'All Books Collection'
           }
           </h2>
-
+          
+           <div className="min-h-full">
+        <Disclosure as="nav">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex h-16 items-center justify-between">
+              <div className="flex items-center">
+                <div className="hidden md:block">
+                  <div className="flex items-baseline space-x-4">
+                    {updatednavigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={`${item.href}${item.filter ? `?filter=${item.filter}`:''}`}
+                        aria-current={item.current ? 'page' : undefined}
+                        className={classNames(
+                          item.current ? 'bg-gray-900 text-white' : 'text-black hover:bg-gray-700 hover:text-white bg-gray-100 border border-gray-400',
+                          'rounded-md px-4 py-2 text-sm font-medium',
+                        )}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                </div>
+                </div>
+              </div>
+        </Disclosure>
+          </div>
           <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
             {currentBooks.map((book) => (
               <div key={book.id} className="group relative">
+                <Link 
+                href={{
+                  pathname: "/booklayout",
+                  query:{
+                    id: book.id,
+                    title: book.title,
+                    price: book.price,
+                    description: book.description,
+                    image: book.images[0]
+                  }
+                }}>
+                
                 <img
                   alt={book.title}
                   src={book.images[0]}
                   className="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80"
                 />
+                
                 <div className="mt-4 flex justify-between">
                   <div>
                     <h3 className="text-sm text-gray-700">
-                      <Link href={`/books/${book.id}`}>
-                        <span aria-hidden="true" className="absolute inset-0" />
                         {book.title}
-                      </Link>
                     </h3>
                     <p className="mt-1 text-sm text-gray-500">{book.brand}</p>
                   </div>
@@ -128,6 +183,7 @@ export default function AllBooksPage() {
                     ${book.price}
                   </p>
                 </div>
+              </Link>
               </div>
             ))}
           </div>
@@ -175,5 +231,6 @@ export default function AllBooksPage() {
 
       <Footer />
     </div>
+    </>
   );
 }
