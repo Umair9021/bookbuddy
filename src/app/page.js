@@ -5,7 +5,7 @@ import { Search, Upload, BookOpen, MessageSquare, ChevronRight } from "lucide-re
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import images from "@/app/data";
+import books from "@/app/bookdata";
 
 import {
   Carousel,
@@ -18,6 +18,8 @@ import { Card, CardContent } from "@/components/ui/card";
 
 
 const YearCarousel = ({title,filter }) => {
+
+  const filteredbook = books.filter(book=>book.category === filter).slice(0,4);
   return (
      
     <div className="w-full py-5">
@@ -28,21 +30,32 @@ const YearCarousel = ({title,filter }) => {
         <div className="w-full max-w-6xl mx-auto bg-gray-100 rounded-xl shadow-sm p-6">
           <Carousel className="w-full">
             <CarouselContent className="-ml-1">
-              {images.map((img, idx) => (
+              {filteredbook.map((book, idx) => (
                 <CarouselItem
-                  key={img.id || idx}
+                  key={book.id || idx}
                   className="pl-1 md:basis-1/2 lg:basis-1/3"
                 >
                   <div className="p-1">
+                    <Link href={{
+                        pathname:'/booklayout',
+                        query:{
+                          id: book.id,
+                          title: book.title,
+                          price: book.price,
+                          description: book.description,
+                          image: book.images[0],
+                        }
+                    }}>
                     <Card className="hover:shadow-md transition-shadow">
                       <CardContent className="flex aspect-square items-center justify-center p-6">
                         <img
-                          src={img.url}
-                          alt={img.title}
+                          src={book.images[0]}
+                          alt={book.title}
                           className="w-full h-full object-cover rounded"
                         />
                       </CardContent>
                     </Card>
+                    </Link>
                   </div>
                 </CarouselItem>
               ))}

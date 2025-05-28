@@ -1,36 +1,86 @@
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import Link from 'next/link';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase/client'
+import { Button } from "@/components/ui/button"
+import Link from 'next/link'
 
 export default function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      setUser(session?.user ?? null)
+    }
+
+    getUser()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
+  }, [])
+
+  const toggleMenu = () => setMenuOpen(prev => !prev)
+  const closeMenu = () => setMenuOpen(false)
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    closeMenu()
+  }
+
   return (
     <nav className="w-full flex items-center justify-between px-8 py-4 bg-primary text-primary-foreground shadow-md">
-      
-      {/* Center: Title */}
       <Link href="/" className="flex text-2xl font-bold pl-15">Bookbuddy</Link>
-      
-      
-      {/* Right side: Links */}
+
       <div className='flex items-center space-x-4'>
-         <Button variant="ghost">Buy</Button>
+        <Button variant="ghost">Buy</Button>
         <Button variant="ghost">Sell</Button>
-        <span className="ml-2 flex items-center mr-10">
-          <Avatar>
-      <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-      <AvatarFallback>CN</AvatarFallback>
-    </Avatar>
-          {/* <img
-            src="/window.svg"
-            alt="User DP"
-            className="w-8 h-8 rounded-full object-cover border border-white shadow-sm transition-transform duration-150 hover:scale-105 hover:ring-2 hover:ring-primary-foreground"
-          /> */}
-        </span>
+
+        {!user ? (
+          <Link href="/auth/login">
+            <Button variant="ghost" className="ml-4">Sign In</Button>
+          </Link>
+        ) : (
+          <div className="relative ml-4">
+            <button
+              onClick={toggleMenu}
+              className="relative flex rounded-full bg-gray-800 text-sm focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+            >
+              <img
+                className="w-8 h-8 rounded-full"
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                alt="User avatar"
+              />
+            </button>
+
+            {menuOpen && (
+              <div
+                className="absolute right-0 mt-2 w-30 bg-white rounded-md shadow-lg ring-1 ring-black/5 z-10"
+                role="menu"
+              >
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 md:rounded-md flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                  </svg>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </nav>
-  );
-} 
+  )
+}

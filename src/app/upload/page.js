@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { ImagePlus, X } from "lucide-react";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export default function CardWithForm() {
   const router = useRouter();
@@ -58,7 +60,9 @@ export default function CardWithForm() {
   };
 
   return (
-    <Card className="w-[500px] m-auto shadow-lg mt-20">
+    <div className="min-h-screen flex flex-col bg-muted">
+            <Navbar />
+    <Card className="w-[500px] m-auto shadow-lg mt-10 mb-10">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-gray-800">Add Book Details</CardTitle>
         <CardDescription className="text-gray-500">
@@ -179,5 +183,7 @@ export default function CardWithForm() {
         </form>
       </CardContent>
     </Card>
+    <Footer />
+    </div>
   );
 }
