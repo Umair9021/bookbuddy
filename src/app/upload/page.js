@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,9 +8,9 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,12 +22,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, X, LogIn } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/components/AuthProvider";
 
-export default function CardWithForm() {
+export default function UploadPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [image, setImage] = React.useState(null);
   const [preview, setPreview] = React.useState(null);
 
@@ -52,29 +55,82 @@ export default function CardWithForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    // Handle form submission with user data
     const formData = new FormData();
+    formData.append('userId', user.id);
     if (image) {
       formData.append('image', image);
     }
-    // Handle form submission
+    // Add your submission logic here
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-muted">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col bg-muted">
+        <Navbar />
+        <Card className="w-[500px] m-auto shadow-lg mt-15">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Authentication Required
+            </CardTitle>
+            <CardDescription className="text-gray-500">
+              Please login to upload books
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-4">
+            <Button
+              onClick={() => router.push('/auth/login')}
+              className="bg-blue-600 hover:bg-blue-700 gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Login Now
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/auth/signup')}
+            >
+              Create Account
+            </Button>
+          </CardContent>
+        </Card>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-muted">
-            <Navbar />
-    <Card className="w-[500px] m-auto shadow-lg mt-10 mb-10">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-800">Add Book Details</CardTitle>
-        <CardDescription className="text-gray-500">
-          Fill in the details to list your book
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
+      <Navbar />
+      <Card className="w-[500px] m-auto shadow-lg mt-10 mb-10">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-gray-800">
+            Add Book Details
+          </CardTitle>
+          <CardDescription className="text-gray-500">
+            Welcome, {user.name}! Fill in the details to list your book
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Book Title */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-gray-700">Title</Label>
+         {/* Book Title */}
+           <div className="space-y-2">
+             <Label htmlFor="name" className="text-gray-700">Title</Label>
             <Input 
               id="name" 
               placeholder="Enter book title" 
@@ -182,8 +238,8 @@ export default function CardWithForm() {
           </CardFooter>
         </form>
       </CardContent>
-    </Card>
-    <Footer />
+      </Card>
+      <Footer />
     </div>
   );
 }

@@ -6,7 +6,6 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import books from "@/app/bookdata";
-
 import {
   Carousel,
   CarouselContent,
@@ -20,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const YearCarousel = ({title,filter }) => {
 
   const filteredbook = books.filter(book=>book.category === filter).slice(0,4);
+
   return (
      
     <div className="w-full py-5">
@@ -88,6 +88,7 @@ const YearCarousel = ({title,filter }) => {
 };
 
 export default function HomePage() {
+
   return (
     <div className="min-h-screen flex flex-col bg-muted">
       <Navbar />
@@ -126,7 +127,8 @@ export default function HomePage() {
               </Link>
 
               {/* Upload Book */}
-              <Link href="/upload" className="w-50 ml-20 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center">
+              <Link href="/upload"
+              className="w-50 ml-20 bg-white cursor-pointer rounded-xl shadow-lg p-6 flex flex-col items-center justify-center">
                 <div className="bg-primary/10 p-3 rounded-full mb-3">
                   <Upload className="w-6 h-6 text-primary" />
                 </div>
