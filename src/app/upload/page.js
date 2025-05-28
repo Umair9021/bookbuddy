@@ -28,6 +28,7 @@ import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function UploadPage() {
+
   const router = useRouter();
   const { user, loading } = useAuth();
   const [image, setImage] = React.useState(null);
@@ -112,7 +113,7 @@ export default function UploadPage() {
       </div>
     );
   }
-
+  else{
   return (
     <div className="min-h-screen flex flex-col bg-muted">
       <Navbar />
@@ -241,5 +242,6 @@ export default function UploadPage() {
       </Card>
       <Footer />
     </div>
-  );
+  ); 
+  }
 }
