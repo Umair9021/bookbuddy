@@ -124,6 +124,7 @@ export default function UploadPage() {
           </CardTitle>
           <CardDescription className="text-gray-500">
             Welcome, {user.name}! Fill in the details to list your book
+            
           </CardDescription>
         </CardHeader>
         

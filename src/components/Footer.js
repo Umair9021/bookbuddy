@@ -35,8 +35,8 @@ export default function Footer() {
             <ul className="space-y-2">
               <li><Link href="/search" className="hover:text-primary-foreground/80 transition">Search Books</Link></li>
               <li><Link href="/upload" className="hover:text-primary-foreground/80 transition">Upload Books</Link></li>
-              <li><Link href="/browse" className="hover:text-primary-foreground/80 transition">Browse All</Link></li>
-              <li><Link href="/faq" className="hover:text-primary-foreground/80 transition">FAQ</Link></li>
+              <li><Link href="/#" className="hover:text-primary-foreground/80 transition">Browse All</Link></li>
+              <li><Link href="/#" className="hover:text-primary-foreground/80 transition">FAQ</Link></li>
             </ul>
           </div>
 
@@ -84,10 +84,10 @@ export default function Footer() {
             © {new Date().getFullYear()} BookBuddy. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/privacy" className="text-primary-foreground/60 hover:text-primary-foreground/80 text-sm transition">
+            <Link href="/#" className="text-primary-foreground/60 hover:text-primary-foreground/80 text-sm transition">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-primary-foreground/60 hover:text-primary-foreground/80 text-sm transition">
+            <Link href="/#" className="text-primary-foreground/60 hover:text-primary-foreground/80 text-sm transition">
               Terms of Service
             </Link>
           </div>

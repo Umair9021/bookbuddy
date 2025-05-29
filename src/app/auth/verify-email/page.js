@@ -1,12 +1,22 @@
+
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="max-w-md text-center">
-        <h1 className="text-2xl font-bold">Verify Your Email</h1>
-        <p className="mt-4 text-gray-600">
-          We've sent a confirmation link to your email. Please check your inbox to verify your account.
-        </p>
-      </div>
-    </div>
+      <Card className="w-[500px] m-auto shadow-lg mt-70">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Verify Your Email
+            </CardTitle>
+            <CardDescription className="text-gray-500">
+              We've sent a confirmation link to your email. Please check your inbox to verify your account.
+            </CardDescription>
+          </CardHeader>
+       </Card>
   );
 }

@@ -1,4 +1,4 @@
-// components/ProductLayout.tsx
+
 "use client";
 
 import { Star } from "lucide-react";
@@ -17,23 +17,20 @@ export default function ProductLayout() {
     description: searchParams.get("description"),
     image: searchParams.get("image") || "/img.jfif",
   };
-  const addToCart = () => {
-    alert(`Added Zip Tote Basket to your bag!`);
-  };
 
-  const bookCondition = "Like New"; // Example condition
-  const bookCategory = "Fiction / Fantasy";
+  const bookCondition = "Good";
+  const bookCategory = "First Year Book";
 
   return (
     <div className="min-h-screen flex flex-col bg-muted">
       <Navbar />
-      <div className=" max-w-7xl mx-auto ml-80 px-4 py-12 ">
+      <div className=" max-w-7xl mx-auto ml-50 px-4 py-12 ">
         <div className=" flex flex-col justify-center md:flex-row gap-6">
           {/* Image Gallery - Left Side */}
           <div className="md:w-100">
             <div className="bg-gray-100 border border-gray-100 rounded-lg overflow-hidden">
               <Image
-                src={books.image} // Replace with your actual image path
+                src={books.image} 
                 alt={bookCategory.title || "Book image"}
                 width={600}
                 height={800}
@@ -43,7 +40,7 @@ export default function ProductLayout() {
             </div>
           </div>
 
-          {/* Product Details - Right Side */}
+          {/* Book Details - Right Side */}
           <div className="md:w-1/3">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {books.title}
@@ -65,7 +62,7 @@ export default function ProductLayout() {
               </div>
             </div>
 
-            {/* Product Description */}
+            {/* Book Description */}
             <p className="text-gray-600 mb-6 w-90">{books.description}</p>
 
             {/* Book Condition and Category */}
@@ -76,11 +73,6 @@ export default function ProductLayout() {
                 </h3>
                 <p className="text-lg font-medium text-gray-800 flex items-center">
                   {bookCondition}
-                  {bookCondition === "New" && (
-                    <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                      ★ New
-                    </span>
-                  )}
                 </p>
               </div>
 
@@ -88,19 +80,17 @@ export default function ProductLayout() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
                   Category
                 </h3>
-                <p className="text-lg font-medium text-gray-800 flex items-center">
+                <p className="text-lg w-70 font-medium text-gray-800 flex items-center">
                   {bookCategory}
                 </p>
               </div>
             </div>
 
-            {/* Quantity and Add to Cart */}
             <div className="mb-8">
               <button
-                onClick={addToCart}
-                className="flex-1 bg-blue-600 w-90 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors"
+                className="flex-1 bg-blue-600 w-40 text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors"
               >
-                Add to bag
+                Chat with Owner
               </button>
             </div>
           </div>

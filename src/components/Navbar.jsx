@@ -15,15 +15,25 @@ export default function Navbar() {
         data: { session },
       } = await supabase.auth.getSession()
 
-      setUser(session?.user ?? null)
+      
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+
+      if (currentUser?.user_metadata?.picture) {
+        setAvatarUrl(currentUser.user_metadata.picture)
+      }
     }
 
-    getUser()
+    getUser();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
 
+      if (currentUser?.user_metadata?.picture) {
+        setAvatarUrl(currentUser.user_metadata.picture)
+      }
+    })
     return () => {
       listener.subscription.unsubscribe()
     }
@@ -31,13 +41,15 @@ export default function Navbar() {
 
   const toggleMenu = () => setMenuOpen(prev => !prev)
   const closeMenu = () => setMenuOpen(false)
+   const [avatarUrl, setAvatarUrl] = useState(null)
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     closeMenu()
   }
-
+  
   return (
+    
     <nav className="w-full flex items-center justify-between px-8 py-4 bg-primary text-primary-foreground shadow-md">
       <Link href="/" className="flex text-2xl font-bold pl-15">Bookbuddy</Link>
 
@@ -57,8 +69,8 @@ export default function Navbar() {
             >
               <img
                 className="w-8 h-8 rounded-full"
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                alt="User avatar"
+                src={avatarUrl || '/default-avatar.png'}
+                alt="User Profile"
               />
             </button>
 

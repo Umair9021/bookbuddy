@@ -18,15 +18,11 @@ import {
 const navigation = [
   { name: "All Books", href: "/books", current: false, filter: null },
   { name: "First Year", href: "/books", current: false, filter: "laptops" },
-  {
-    name: "Second Year",
-    href: "/books",
-    current: false,
-    filter: "mens-shirts",
-  },
+  { name: "Second Year", href: "/books", current: false, filter: "mens-shirts"},
   { name: "Third Year", href: "/books", current: false, filter: "fragrances" },
   // { name: 'Recently Uploaded', href: '/books', current: false, filter: 'recent'},
 ];
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -34,6 +30,7 @@ function classNames(...classes) {
 const ITEMS_PER_PAGE = 16;
 
 export default function AllBooksPage() {
+
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter");
   const router = useRouter();
@@ -111,11 +108,11 @@ export default function AllBooksPage() {
               {filter
                 ? `${
                     filter === "laptops"
-                      ? "Laptops"
+                      ? "First Year"
                       : filter === "fragrances"
-                      ? "Fragrances"
-                      : "Mens-Shirts"
-                  } Collection`
+                      ? "Third Year"
+                      : "Second Year"
+                  } Books`
                 : "All Books Collection"}
             </h2>
 
