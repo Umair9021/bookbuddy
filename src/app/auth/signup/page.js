@@ -9,21 +9,24 @@ import OAuthButton from "@/components/OAuthButton";
 export default function SignupPage() {
   async function signUpWithEmail(formData) {
 
-    const email = formData.get("email");
-    const password = formData.get("password");
     const name = formData.get("name");
+     const email = formData.get("email");
+      
 
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-          },
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-        },
-      });
-      return redirect('/auth/verify-email')
+      const { error } = await supabase.auth.signInWithOtp({
+    email,
+    password,
+    options: {
+      data: { name },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    alert("Error sending OTP: " + error.message);
+  } else {
+    return redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`); 
+  }
     
   }
   return (
