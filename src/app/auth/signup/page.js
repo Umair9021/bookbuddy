@@ -5,13 +5,16 @@ import { supabase } from "@/lib/supabase/client";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import OAuthButton from "@/components/OAuthButton";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+
+  const router = useRouter();
   async function signUpWithEmail(formData) {
 
     const name = formData.get("name");
      const email = formData.get("email");
-      
+      const password = formData.get("password");
 
       const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -25,7 +28,7 @@ export default function SignupPage() {
   if (error) {
     alert("Error sending OTP: " + error.message);
   } else {
-    return redirect(`/auth/verify-otp?email=${encodeURIComponent(email)}`); 
+    router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}&purpose=signup`);
   }
     
   }

@@ -40,20 +40,22 @@ export default function LoginPage() {
     }
   }
 
-  async function handlePasswordReset(e) {
-    e.preventDefault();
-    setResetMessage("");
+async function handlePasswordReset(e) {
+  e.preventDefault();
+  setResetMessage("Sending verification code...");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth/updatePassword`,
-    });
+  // Send OTP for password reset
+  const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+    redirectTo: `${window.location.origin}/auth/verify-otp`,
+  });
 
-    if (error) {
-      setResetMessage(`Error: ${error.message}`);
-    } else {
-      setResetMessage("Password reset link sent! Check your email.");
-    }
+  if (error) {
+    setResetMessage(`Error: ${error.message}`);
+  } else {
+    setResetMessage("Verification code sent! Check your email.");
+    router.push(`/auth/verify-otp?email=${encodeURIComponent(resetEmail)}&purpose=recovery`);
   }
+}
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
