@@ -1,36 +1,35 @@
-"use client"; 
+"use client";
 
-import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import OAuthButton from "@/components/OAuthButton";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function SignupPage() {
-
+  const [ErrorMessage, setErrorMessage] = useState('');
   const router = useRouter();
   async function signUpWithEmail(formData) {
 
     const name = formData.get("name");
-     const email = formData.get("email");
-      const password = formData.get("password");
+    const email = formData.get("email");
 
-      const { error } = await supabase.auth.signInWithOtp({
-    email,
-    password,
-    options: {
-      data: { name },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-    },
-  });
 
-  if (error) {
-    alert("Error sending OTP: " + error.message);
-  } else {
-    router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}&purpose=signup`);
-  }
-    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+       password,
+      options: {
+        data: { name },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      alert("Error sending OTP: " + error.message);
+    } else {
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}&purpose=signup`);
+    }
+
   }
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -113,7 +112,9 @@ export default function SignupPage() {
               </button>
             </div>
           </form>
-
+          {ErrorMessage && (
+            <p className="text-sm text-red-600 mt-2">{ErrorMessage}</p>
+          )}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
