@@ -14,7 +14,6 @@ import {
   CarouselNext, 
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-import WhyChooseBookBuddy from "@/components/whtchoosebookbuddy";
 
 const YearCarousel = ({title,filter }) => {
 
@@ -175,7 +174,6 @@ export default function HomePage() {
         <YearCarousel  title="Second Year Books" filter="mens-shirts"/>
         <YearCarousel  title="Third Year Books" filter="fragrances"/>
       </main>
-       <WhyChooseBookBuddy />
       <Footer />
     </div>
   );
