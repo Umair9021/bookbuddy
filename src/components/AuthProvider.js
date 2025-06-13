@@ -20,10 +20,13 @@ export function AuthProvider({ children }) {
     getUser();
 
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
+  data: { subscription },
+} = supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+    setUser(session?.user || null);
+    setLoading(false);
+  }
+});
 
     return () => {
       subscription.unsubscribe();

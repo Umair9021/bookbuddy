@@ -14,7 +14,7 @@ import {
   CarouselNext, 
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-
+import WhyChooseBookBuddy from "@/components/whtchoosebookbuddy";
 
 const YearCarousel = ({title,filter }) => {
 
@@ -111,8 +111,7 @@ export default function HomePage() {
           {/* Right: 4 Large Blocks */}
           <div className="md:w-3/5 w-full flex flex-col">
             <div className="grid grid-cols-2 grid-rows-2 gap-6 h-full min-h-[200px]">
-               <Link
-                href="/search"
+               <div
                 className="w-50 ml-60 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center"
               >
                 <div className="bg-primary/10 p-3 rounded-full mb-3">
@@ -124,11 +123,11 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground text-center mt-1">
                   Find exactly what you need
                 </p>
-              </Link>
+              </div>
 
               {/* Upload Book */}
-              <Link href="/upload"
-              className="w-50 ml-20 bg-white cursor-pointer rounded-xl shadow-lg p-6 flex flex-col items-center justify-center">
+              <div
+              className="w-50 ml-20 bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center">
                 <div className="bg-primary/10 p-3 rounded-full mb-3">
                   <Upload className="w-6 h-6 text-primary" />
                 </div>
@@ -138,7 +137,7 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground text-center mt-1">
                   Sell your used textbooks
                 </p>
-              </Link>
+              </div>
 
               {/* See All Books */}
               <Link
@@ -176,6 +175,7 @@ export default function HomePage() {
         <YearCarousel  title="Second Year Books" filter="mens-shirts"/>
         <YearCarousel  title="Third Year Books" filter="fragrances"/>
       </main>
+       <WhyChooseBookBuddy />
       <Footer />
     </div>
   );

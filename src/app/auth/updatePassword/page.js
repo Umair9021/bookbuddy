@@ -39,7 +39,7 @@ export default function UpdatePasswordPage() {
     } else {
       setMessage('Password updated successfully! Redirecting...')
       setTimeout(() => {
-        router.push('/auth/login')
+        router.push('/')
       }, 2000)
     }
 
@@ -79,7 +79,7 @@ export default function UpdatePasswordPage() {
             {loading ? 'Updating...' : 'Update Password'}
           </button>
         </form>
-        {message && <p className="mt-4 text-sm text-center text-gray-700">{message}</p>}
+        {message && <p className="mt-4 text-sm text-center text-blue-600">{message}</p>}
       </div>
     </div>
   )

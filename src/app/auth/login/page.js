@@ -41,8 +41,9 @@ export default function LoginPage() {
     }
   }
 
-  async function handlePasswordReset() {
-
+  async function handlePasswordReset(e) {
+    e.preventDefault();
+    setErrorMessage("");
 
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
       redirectTo: `${window.location.origin}/auth/verify-otp`,

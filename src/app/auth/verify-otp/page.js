@@ -1,8 +1,7 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function VerifyOtpPage() {
   const [otp, setOtp] = useState('');
@@ -10,6 +9,7 @@ export default function VerifyOtpPage() {
   const [email, setEmail] = useState('');
   const [purpose, setPurpose] = useState('signup');
   const [isLoading, setIsLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -24,53 +24,100 @@ export default function VerifyOtpPage() {
     }
   }, [searchParams]);
 
+  // Cooldown timer for resend button
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const verifyOtp = async () => {
     if (!otp || otp.length !== 6) {
       setMessage('Please enter a valid 6-digit code');
       return;
     }
 
-    setIsLoading(true);
-    setMessage('Verifying...');
-
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: purpose,
-    });
-
-    if (error) {
-      setMessage(`Error: ${error.message}`);
-      setIsLoading(false);
+    if (!email) {
+      setMessage('Email is missing. Please go back and try again.');
       return;
     }
 
-    // Only show success and redirect after successful verification
-    if (purpose === 'signup') {
-      setMessage('Account verified! Redirecting to dashboard...');
-      setTimeout(() => router.push('/dashboard'), 2000);
-    } else {
-      setMessage('Verified! Redirecting to password update...');
-      setTimeout(() => router.push('/auth/updatePassword'), 2000);
+    setIsLoading(true);
+    setMessage('Verifying...');
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: purpose === 'signup' ? 'signup' : 'recovery',
+      });
+
+      if (error) {
+        // Handle specific error messages
+        if (error.message.includes('expired')) {
+          setMessage('Code has expired. Please request a new one.');
+        } else if (error.message.includes('invalid')) {
+          setMessage('Invalid code. Please check and try again.');
+        } else if (error.message.includes('too many')) {
+          setMessage('Too many attempts. Please wait before trying again.');
+        } else {
+          setMessage(`Error: ${error.message}`);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Success
+      if (purpose === 'signup') {
+        setMessage('Account verified! Redirecting to dashboard...');
+        setTimeout(() => router.push('/'), 2000);
+      } else {
+        setMessage('Verified! Redirecting to password update...');
+        setTimeout(() => router.push('/auth/updatePassword'), 2000);
+      }
+    } catch (err) {
+      setMessage(`Unexpected error: ${err.message}`);
+      setIsLoading(false);
     }
   };
 
   const resendCode = async () => {
+    if (resendCooldown > 0) {
+      return;
+    }
+
     setMessage('Resending code...');
     setIsLoading(true);
 
     try {
       if (purpose === 'signup') {
-        await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
         });
+        
+        if (error) {
+          setMessage(`Error resending code: ${error.message}`);
+        } else {
+          setMessage('New verification code sent!');
+          setResendCooldown(60); // 60 second cooldown
+        }
       } else {
-        await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/verify-otp?email=${email}&purpose=recovery`,
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/verify-otp?email=${encodeURIComponent(email)}&purpose=recovery`,
         });
+        
+        if (error) {
+          setMessage(`Error resending code: ${error.message}`);
+        } else {
+          setMessage('New verification code sent!');
+          setResendCooldown(60); // 60 second cooldown
+        }
       }
-      setMessage('New verification code sent!');
     } catch (error) {
       setMessage(`Error: ${error.message}`);
     } finally {
@@ -78,50 +125,80 @@ export default function VerifyOtpPage() {
     }
   };
 
+  // Handle OTP input - only allow numbers and limit to 6 digits
+  const handleOtpChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    if (value.length <= 6) {
+      setOtp(value);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-4 text-center">
           {purpose === 'signup' ? 'Verify Your Account' : 'Reset Password'}
         </h1>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 mb-6 text-center">
           Code sent to: <span className="font-medium">{email}</span>
         </p>
         <div className="space-y-4">
           <div>
-            <label className="block mb-1">OTP Code</label>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Enter 6-digit verification code
+            </label>
             <input
               type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="6-digit code"
+              onChange={handleOtpChange}
+              className="w-full p-3 border border-gray-300 rounded-md text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="000000"
               maxLength={6}
               disabled={isLoading}
+              autoComplete="one-time-code"
             />
           </div>
+          
           <button
             onClick={verifyOtp}
-            disabled={isLoading}
-            className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:bg-indigo-400"
+            disabled={isLoading || otp.length !== 6}
+            className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed font-medium"
           >
-            {isLoading ? 'Verifying...' : 'Verify'}
+            {isLoading ? 'Verifying...' : 'Verify Code'}
           </button>
+          
           <button
             type="button"
             onClick={resendCode}
-            disabled={isLoading}
-            className="w-full text-indigo-600 py-2 rounded hover:text-indigo-700 text-sm disabled:text-indigo-300"
+            disabled={isLoading || resendCooldown > 0}
+            className="w-full text-indigo-600 py-2 rounded-md hover:text-indigo-700 text-sm disabled:text-indigo-300 disabled:cursor-not-allowed"
           >
-            Resend Code
+            {resendCooldown > 0 
+              ? `Resend Code (${resendCooldown}s)` 
+              : isLoading 
+                ? 'Sending...' 
+                : 'Resend Code'
+            }
           </button>
+          
           {message && (
-            <p className={`mt-2 text-sm ${
-              message.includes('Error') ? 'text-red-500' : 'text-green-500'
+            <div className={`mt-4 p-3 rounded-md text-sm text-center ${
+              message.includes('Error') || message.includes('expired') || message.includes('invalid')
+                ? 'bg-red-50 text-red-600 border border-red-200' 
+                : 'bg-green-50 text-green-600 border border-green-200'
             }`}>
               {message}
-            </p>
+            </div>
           )}
+          
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => router.push('/auth/login')}
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              ← Back to Login
+            </button>
+          </div>
         </div>
       </div>
     </div>
