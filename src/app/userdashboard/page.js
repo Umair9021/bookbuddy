@@ -10,6 +10,7 @@ import LoadingScreen from '@/components/Dashboard/LoadingScreen';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import AddBook from '@/components/Dashboard/AddBook';
 import { useRouter } from 'next/navigation';
+import { toast } from "sonner"
 import { useAuth } from "@/components/AuthProvider";
 
 const Dashboard = () => {
@@ -209,8 +210,8 @@ const Dashboard = () => {
                 })
 
                 await fetchUserData();
-
-                alert('Book added successfully!');
+                toast("Book added successfully!")
+                
                 setActiveTab('books');
             }
             else {
@@ -258,8 +259,8 @@ const Dashboard = () => {
                 setSelectedBook(null);
 
                 await fetchUserData();
-
-                alert('Book updated successfully');
+                toast("Book updated successfully.")
+                
             }
             else {
                 const errorData = await response.json();
@@ -281,7 +282,7 @@ const Dashboard = () => {
 
             if (response.ok) {
                 await fetchUserData();
-                alert('Book deleted successfully');
+                toast("Book deleted successfully.")
             } else {
                 const errorData = await response.json();
                 alert(`Error: ${errorData.error}`);
@@ -393,6 +394,9 @@ const Dashboard = () => {
                     bookForm={bookForm}
                     updatehandle={updatehandle}
                     handleFormChange={handleFormChange}
+                     handleFileUpload={handleFileUpload}
+                    setThumbnail={setThumbnail}
+                    removeImage={removeImage}
                    />
                 );
             default:

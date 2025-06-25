@@ -2,6 +2,7 @@
 
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import { Toaster } from "@/components/ui/sonner"
 
 export default function RootLayout({ children }) {
   return (
@@ -9,6 +10,7 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>

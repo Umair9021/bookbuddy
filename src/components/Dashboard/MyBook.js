@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { BookPlus,Edit,Trash2 } from 'lucide-react';
+import { BookPlus, Edit, Trash2 } from 'lucide-react';
+import UpdateBook from './UpdateBook';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,24 +16,26 @@ import {
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     DialogTrigger,
+    DialogDescription,
+    DialogTitle,
+    DialogHeader
 } from '@/components/ui/dialog';
 
 
 const MyBook = ({
-    filteredBooks, 
-    setActiveTab, 
-    handleEditBook, 
+    filteredBooks,
+    setActiveTab,
+    handleEditBook,
     handleDeleteBook,
     editDialogOpen,
     setEditDialogOpen,
     bookForm,
     updatehandle,
-    handleFormChange
+    handleFormChange,
+    handleFileUpload,
+    setThumbnail,
+    removeImage,
 }) => {
 
     return (
@@ -94,51 +97,21 @@ const MyBook = ({
                                                         <span>Edit</span>
                                                     </button>
                                                 </DialogTrigger>
-                                                <DialogContent className="sm:max-w-[425px]">
-                                                    <DialogHeader>
+                                                <DialogContent className="w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+                                                    <DialogHeader className="sr-only">
                                                         <DialogTitle>Edit Book</DialogTitle>
                                                         <DialogDescription>
-                                                            Make changes to your book listing here.
+                                                            Update your book listing information
                                                         </DialogDescription>
                                                     </DialogHeader>
-                                                    <div className="grid gap-4 py-4">
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <label htmlFor="edit-title" className="text-right">Title</label>
-                                                            <input
-                                                                id="edit-title"
-                                                                value={bookForm.title}
-                                                                onChange={(e) => handleFormChange('title', e.target.value)}
-                                                                className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg"
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <label htmlFor="edit-price" className="text-right">Price</label>
-                                                            <input
-                                                                id="edit-price"
-                                                                value={bookForm.price}
-                                                                onChange={(e) => handleFormChange('price', e.target.value)}
-                                                                className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg"
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-4 items-center gap-4">
-                                                            <label htmlFor="edit-price" className="text-right">Status</label>
-                                                            <select
-                                                                id="edit-status"
-                                                                value={bookForm.status}
-                                                                onChange={(e) => handleFormChange('status', e.target.value)}
-                                                                className="col-span-3 px-3 py-2 border border-gray-300 rounded-lg"
-                                                            >
-                                                            <option value="Available">Available</option>
-                                                            <option value="Reserved">Reserved</option>
-                                                            <option value="Sold">Sold</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <DialogFooter>
-                                                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onClick={updatehandle}>
-                                                            Save changes
-                                                        </button>
-                                                    </DialogFooter>
+                                                    <UpdateBook
+                                                        bookForm={bookForm}
+                                                        updatehandle={updatehandle}
+                                                        handleFormChange={handleFormChange}
+                                                        handleFileUpload={handleFileUpload}
+                                                        setThumbnail={setThumbnail}
+                                                        removeImage={removeImage}
+                                                    />
                                                 </DialogContent>
                                             </Dialog>
 

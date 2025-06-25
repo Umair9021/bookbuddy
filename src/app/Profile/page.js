@@ -11,17 +11,17 @@ const ModernUserProfile = () => {
 
 
   const [userInfo, setUserInfo] = useState({
-    name: 'Sarah Johnson',
-    major: 'Computer Science',
-    year: 'Junior',
-    university: 'Stanford University',
-    location: 'Stanford, CA',
-    email: 'sarah.j@stanford.edu',
-    phone: '+1 (555) 123-4567',
-    joinDate: 'September 2023',
-    bio: 'CS major passionate about algorithms and data structures. Always looking for good textbooks at reasonable prices. Happy to trade or sell books from previous semesters!',
+    name: '',
+    major: '',
+    post: '',
+    university: '',
+    location: '',
+    email: '',
+    phone: '',
+    bio: '',
     profileImage: null,
-    coverImage: null
+    coverImage: null,
+    
   });
 
   useEffect(() => {
@@ -231,10 +231,7 @@ const ModernUserProfile = () => {
                       userInfo.location
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Joined {userInfo.joinDate}
-                  </div>
+                  
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />
                     {isEditing ? (
