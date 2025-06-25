@@ -97,7 +97,7 @@ const MyBook = ({
                                                         <span>Edit</span>
                                                     </button>
                                                 </DialogTrigger>
-                                                <DialogContent className="w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+                                                <DialogContent className="w-full sm:max-w-4xl h-full overflow-y-auto">
                                                     <DialogHeader className="sr-only">
                                                         <DialogTitle>Edit Book</DialogTitle>
                                                         <DialogDescription>
