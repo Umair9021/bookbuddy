@@ -17,7 +17,7 @@ const StatusDonutChart = ({ books })=>{
             const statusBgColors = {
                 'Sold': 'bg-indigo-600',
                 'Available': 'bg-emerald-500',
-                'Reserved':'text-yellow-300'
+                'Reserved':'bg-yellow-300'
             };
     
             const segments = Object.entries(statusCounts)

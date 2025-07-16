@@ -18,6 +18,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import getImageSrc from '@/utils/getImageSrc';
 
 const Sidebar = ({
     sidebarOpen,
@@ -91,7 +92,7 @@ const Sidebar = ({
                                 <div className="w-10 h-10  rounded-full flex items-center justify-center">
                                     <img
                                         className="w-10 h-10 rounded-full"
-                                        src={avatarUrl || '/image.avif'}
+                                        src={getImageSrc(avatarUrl)}
                                         alt="User Profile"
                                     />
                                 </div>
@@ -105,7 +106,7 @@ const Sidebar = ({
                                 <div className="w-10 h-10  rounded-full flex items-center justify-center">
                                     <img
                                         className="w-10 h-10 rounded-full"
-                                        src={avatarUrl || '/image.avif'}
+                                        src={getImageSrc(avatarUrl)}
                                         alt="User Profile"
                                     />
                                 </div>

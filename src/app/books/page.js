@@ -14,6 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import getImageSrc from '@/utils/getImageSrc';
 
 const navigation = [
   { name: "All Books", href: "/books", current: false, filter: null },
@@ -169,7 +170,7 @@ export default function AllBooksPage() {
                   >
                     <img
                       alt={book.title}
-                      src={book.images[0]}
+                      src={getImageSrc(book.images[0])}
                       className="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80"
                     />
 

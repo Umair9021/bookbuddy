@@ -29,6 +29,7 @@ const Dashboard = () => {
     const [dashboardStats, setDashboardStats] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
     const [user1, setUser] = useState(null);
+    const [uploadingImages, setUploadingImages] = useState(false);
 
     const [bookForm, setBookForm] = useState({
         title: '',
@@ -94,7 +95,6 @@ const Dashboard = () => {
             setDashboardStats(statsData);
         } catch (error) {
             console.error('Fetch error:', error);
-            // Set fallback state
             setBooks([]);
             setDashboardStats({
                 totalBooks: 0,
@@ -114,7 +114,6 @@ const Dashboard = () => {
         }
     }, [user]);
 
-    // Search functionality
     useEffect(() => {
         if (!searchQuery.trim()) {
             setFilteredBooks(books);
@@ -127,7 +126,6 @@ const Dashboard = () => {
         }
     }, [searchQuery, books]);
 
-    // Form handlers
     const handleFormChange = (field, value) => {
         setBookForm(prev => ({
             ...prev,
@@ -153,14 +151,38 @@ const Dashboard = () => {
             thumbnailIndex: index
         }));
     };
-    const removeImage = (index) => {
-        setBookForm(prev => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== index)
-        }));
-    };
+    const removeImage = async (index) => {
+    const imageToRemove = bookForm.images[index];
+    
+    if (imageToRemove.publicId) {
+        try {
+            const response = await fetch(`/api/upload?publicId=${imageToRemove.publicId}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                console.error('Failed to delete image from Cloudinary');
+            }
+        } catch (error) {
+            console.error('Error deleting image from Cloudinary:', error);
+        }
+    }
 
-    //create new book
+    const newImages = bookForm.images.filter((_, i) => i !== index);
+    
+    let newThumbnailIndex = bookForm.thumbnailIndex;
+    if (index === bookForm.thumbnailIndex) {
+        newThumbnailIndex = 0;
+    } else if (index < bookForm.thumbnailIndex) {
+        newThumbnailIndex = bookForm.thumbnailIndex - 1;
+    }
+
+    setBookForm(prev => ({
+        ...prev,
+        images: newImages,
+        thumbnailIndex: Math.max(0, Math.min(newThumbnailIndex, newImages.length - 1))
+    }));
+};
+
     const handleSubmitBook = async () => {
         if (!user1?.id) {
             alert('User not authticated');
@@ -170,10 +192,9 @@ const Dashboard = () => {
             alert('Please fill all required filed');
             return;
         }
+        const imageURLs = bookForm.images.map(image => image.url || '');
         try {
-            const imageURLs = bookForm.images.map((_, index) =>
-                `https://via.placeholder.com/300x200?text=Book+Image+${index + 1}`
-            );
+            const imageURLs = bookForm.images.map(image => image.url || '');
 
             const newBookData = {
                 title: bookForm.title,
@@ -182,6 +203,7 @@ const Dashboard = () => {
                 condition: bookForm.condition,
                 description: bookForm.description,
                 pictures: imageURLs,
+                thumbnailIndex: bookForm.thumbnailIndex,
                 sellerId: user1.id,
             };
             console.log('Sending book data:', newBookData);
@@ -197,7 +219,6 @@ const Dashboard = () => {
                 const createdBook = await response.json();
                 console.log('Created book:', createdBook);
 
-                //Reset form
                 setBookForm({
                     title: '',
                     price: '',
@@ -236,6 +257,17 @@ const Dashboard = () => {
             if (bookForm.condition) updateData.condition = bookForm.condition;
             if(bookForm.status) updateData.status = bookForm.status;
 
+             if (bookForm.images && bookForm.images.length > 0) {
+            const imageURLs = bookForm.images.map(image => {
+                if (typeof image === 'string') return image;
+                if (image.url) return image.url;
+                return '';
+            }).filter(url => url !== '');
+            
+            updateData.pictures = imageURLs;
+            updateData.thumbnailIndex = bookForm.thumbnailIndex;
+        }
+        
             const response = await fetch(`/api/books?bookId=${selectedBook._id}`, {
                 method: 'PUT',
                 headers: {
@@ -245,7 +277,7 @@ const Dashboard = () => {
             });
             console.log(response);
             if (response.ok) {
-                //Reset form
+
                 setBookForm({
                     title: '',
                     price: '',
@@ -273,7 +305,6 @@ const Dashboard = () => {
         }
     }
 
-    // delete book
     const handleDeleteBook = async (bookId) => {
         try {
             const response = await fetch(`/api/books?bookId=${bookId}`, {
@@ -293,9 +324,19 @@ const Dashboard = () => {
         }
     }
 
-    // edit book
     const handleEditBook = (book) => {
         setSelectedBook(book);
+
+          const existingImages = book.pictures ? book.pictures.map(url => {
+        const publicId = url.includes('cloudinary.com') ? 
+            url.split('/').pop().split('.')[0] : null;
+        
+        return {
+            url: url,
+            publicId: publicId 
+        };
+    }) : [];
+
         setBookForm(prev => ({
             ...prev,
             title: book.title,
@@ -303,10 +344,66 @@ const Dashboard = () => {
             description: book.description,
             category: book.category,
             condition: book.condition,
-            status: book.status
+            status: book.status,
+            images: existingImages,
+            thumbnailIndex: book.thumbnailIndex || 0
         }));
         setEditDialogOpen(true);
     };
+
+    const handleUnifiedImageUpload = async (event) => {
+    const files = Array.from(event.target.files);
+
+    if (!files.length) {
+        console.log('No files selected');
+        return;
+    }
+    
+    if (bookForm.images.length + files.length > 3) {
+        alert('Maximum 3 images allowed');
+        return;
+    }
+
+    setUploadingImages(true);
+    const uploadedImages = [];
+
+    try {
+        for (const file of files) {
+            
+            if (!file.type.startsWith('image/')) {
+                throw new Error(`${file.name} is not an image file`);
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed for ${file.name}: ${response.status}`);
+            }
+
+            const result = await response.json();
+            uploadedImages.push({
+                file: file,
+                url: result.url,
+                publicId: result.public_id
+            });
+        }
+
+        handleFormChange('images', [...bookForm.images, ...uploadedImages]);
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert(`Error uploading images: ${error.message}`);
+    } finally {
+        setUploadingImages(false);
+    }
+};
+
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
@@ -373,14 +470,15 @@ const Dashboard = () => {
                     />)
             case 'addbook':
                 return (
-                    <AddBook 
-                        bookForm={bookForm}
-                        handleFormChange={handleFormChange}
-                        handleFileUpload={handleFileUpload}
-                        setThumbnail={setThumbnail}
-                        removeImage={removeImage}
-                        handleSubmitBook={handleSubmitBook}
-                    />
+                     <AddBook 
+            bookForm={bookForm}
+            handleFormChange={handleFormChange}
+            handleFileUpload={handleUnifiedImageUpload }
+            setThumbnail={setThumbnail}
+            removeImage={removeImage}
+            handleSubmitBook={handleSubmitBook}
+            uploadingImages={uploadingImages}
+        />
                 );
             case 'books':
                 return (

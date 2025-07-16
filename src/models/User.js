@@ -6,10 +6,11 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true,required: true},
   dp:{type: String,default:''},
   coverdp:{type: String,default:''},
-  department:{type:String,enum: ['Science', 'Engineering'],default: 'Science'},
-  post:{type:String,enum: ['Senior', 'Junior'],default: 'Junior' },
+  major:{type:String,enum: ['Science', 'Engineering'],default: 'Science'},
   collegeName:{type:String, default: 'CTI College'},
   address:{type:String, default: ''},
+  about:{type:String},
+  username:{type:String},
 });
 
 export default mongoose.models.User || mongoose.model('User', userSchema);

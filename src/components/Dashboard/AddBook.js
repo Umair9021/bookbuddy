@@ -1,10 +1,11 @@
+'use client';
+import React, { useState } from 'react';
 
-import React from 'react';
-
-import { Card,CardContent,CardHeader } from "@/components/ui/card";
-import { BookPlus, Upload, Star, X, ImageIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { BookPlus, Upload, Star, X, ImageIcon, Loader2 } from 'lucide-react';
+import getImageSrc from '@/utils/getImageSrc';
 const AddBook = ({
-        bookForm,handleFormChange,handleFileUpload,setThumbnail,removeImage,handleSubmitBook
+    bookForm, handleFormChange, handleFileUpload, setThumbnail, removeImage, handleSubmitBook, uploadingImages
 }) => {
 
     return (
@@ -108,21 +109,39 @@ const AddBook = ({
                                     Book Images (Up to 3)
                                     <span className="text-gray-500 font-normal ml-2">- Choose your thumbnail</span>
                                 </label>
-
+                                {uploadingImages && (
+                                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                        <div className="flex items-center space-x-3">
+                                            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                                            <span className="text-blue-800 font-medium">Uploading images...</span>
+                                        </div>
+                                    </div>
+                                )}
                                 {bookForm.images.length === 0 ? (
                                     <div
-                                        className="border-3 border-dashed border-indigo-200 rounded-2xl p-12 text-center hover:border-indigo-400 hover:bg-indigo-50/50 transition-all duration-300 cursor-pointer group"
-                                        onClick={() => document.getElementById('file-upload').click()}
+                                        className={`border-3 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer group ${uploadingImages
+                                                ? 'border-blue-300 bg-blue-50/50 cursor-not-allowed'
+                                                : 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/50'
+                                            }`}
+                                        onClick={() => !uploadingImages && document.getElementById('file-upload').click()}
                                     >
                                         <div className="space-y-4">
                                             <div className="relative">
-                                                <Upload className="h-16 w-16 text-indigo-300 mx-auto group-hover:text-indigo-500 group-hover:scale-110 transition-all duration-300" />
-                                                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full">
-                                                    Max 3
-                                                </div>
+                                                {uploadingImages ? (
+                                                    <Loader2 className="h-16 w-16 text-blue-400 mx-auto animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <Upload className="h-16 w-16 text-indigo-300 mx-auto group-hover:text-indigo-500 group-hover:scale-110 transition-all duration-300" />
+                                                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full">
+                                                            Max 3
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <div className="text-gray-700">
-                                                <p className="font-semibold text-lg">Drop your images here</p>
+                                                <p className="font-semibold text-lg">
+                                                    {uploadingImages ? 'Uploading images...' : 'Drop your images here'}
+                                                </p>
                                                 <p className="text-gray-500 mt-1">PNG, JPG up to 10MB each</p>
                                             </div>
                                         </div>
@@ -133,6 +152,7 @@ const AddBook = ({
                                             accept="image/*"
                                             onChange={handleFileUpload}
                                             className="hidden"
+                                            disabled={uploadingImages}
                                         />
                                     </div>
                                 ) : (
@@ -162,7 +182,7 @@ const AddBook = ({
                                                     {bookForm.images[index] ? (
                                                         <div className="relative group">
                                                             <img
-                                                                src={URL.createObjectURL(bookForm.images[index])}
+                                                                src={getImageSrc(bookForm.images[index])}
                                                                 alt={`Upload ${index + 1}`}
                                                                 className={`w-full h-48 object-cover rounded-xl border-3 transition-all ${bookForm.thumbnailIndex === index
                                                                     ? 'border-yellow-400 shadow-lg'
@@ -183,12 +203,23 @@ const AddBook = ({
                                                             )}
                                                         </div>
                                                     ) : (
-                                                        <div
-                                                            className="h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:border-indigo-400 hover:text-indigo-500 transition-all cursor-pointer"
-                                                            onClick={() => document.getElementById('file-upload').click()}
+                                                        <div className={`h-48 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer ${uploadingImages
+                                                                ? 'border-blue-300 text-blue-400 bg-blue-50/30 cursor-not-allowed'
+                                                                : 'border-gray-300 text-gray-400 hover:border-indigo-400 hover:text-indigo-500'
+                                                            }`}
+                                                            onClick={() => !uploadingImages && document.getElementById('file-upload').click()}
                                                         >
-                                                            <ImageIcon className="h-8 w-8 mb-2" />
-                                                            <span className="text-sm">Add Image</span>
+                                                            {uploadingImages ? (
+                                                                <>
+                                                                    <Loader2 className="h-8 w-8 mb-2 animate-spin" />
+                                                                    <span className="text-sm">Uploading...</span>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <ImageIcon className="h-8 w-8 mb-2" />
+                                                                    <span className="text-sm">Add Image</span>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>

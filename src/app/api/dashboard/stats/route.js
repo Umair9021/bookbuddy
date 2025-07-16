@@ -1,4 +1,4 @@
-import dbConnect from '@/lib/db';  // Correct - importing default export
+import dbConnect from '@/lib/db';  
 import Book from '@/models/books';
 
 export async function GET(request) {

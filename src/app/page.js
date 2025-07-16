@@ -14,6 +14,7 @@ import {
   CarouselNext, 
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import getImageSrc from '@/utils/getImageSrc';
 
 const YearCarousel = ({title,filter }) => {
 
@@ -48,7 +49,7 @@ const YearCarousel = ({title,filter }) => {
                     <Card className="hover:shadow-md transition-shadow">
                       <CardContent className="flex aspect-square items-center justify-center p-6">
                         <img
-                          src={book.images[0]}
+                          src={getImageSrc(book.images[0])}
                           alt={book.title}
                           className="w-full h-full object-cover rounded"
                         />

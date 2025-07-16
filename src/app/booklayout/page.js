@@ -6,6 +6,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useSearchParams } from "next/navigation";
+import getImageSrc from '@/utils/getImageSrc';
 
 export default function ProductLayout() {
   const searchParams = useSearchParams();
@@ -30,7 +31,7 @@ export default function ProductLayout() {
           <div className="md:w-100">
             <div className="bg-gray-100 border border-gray-100 rounded-lg overflow-hidden">
               <Image
-                src={books.image} 
+                src={getImageSrc(books.image)}
                 alt={bookCategory.title || "Book image"}
                 width={600}
                 height={800}

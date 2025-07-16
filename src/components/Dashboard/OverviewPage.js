@@ -40,7 +40,7 @@ const OverviewPage =({ books, filteredBooks, dashboardStats })=> {
                     <div className="p-6">
                         <div className="space-y-4">
                             {filteredBooks.slice(0, 4).map((book) => (
-                                <div key={`${book.id}-${book.title}`} className="flex gap-4 items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div key={`${book._id}-${book.title}`} className="flex gap-4 items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                         <BookOpen className="h-6 w-6 text-white" />
                                     </div>

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import getImageSrc from '@/utils/getImageSrc';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -79,7 +80,7 @@ export default function Navbar() {
             >
               <img
                 className="w-8 h-8 rounded-full"
-                src={avatarUrl || '/image.avif'}
+                src={getImageSrc(avatarUrl)}
                 alt="User Profile"
               />
             </button>
@@ -98,6 +99,7 @@ export default function Navbar() {
                   </svg>
                   Your Profile
                 </button>
+                
                 <button
                   onClick={handleSignOut}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 md:rounded-md flex items-center gap-2"
