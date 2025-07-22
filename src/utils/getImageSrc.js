@@ -1,4 +1,4 @@
-// Utility to get a valid image src from various possible image representations
+
 export default function getImageSrc(img) {
   if (!img) return '/placeholder.png';
   if (typeof img === 'string' && img.length > 0) return img;

@@ -17,6 +17,7 @@ const Dashboard = () => {
 
     const router = useRouter();
     const { user, loading } = useAuth();
+    
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
@@ -28,7 +29,6 @@ const Dashboard = () => {
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [dashboardStats, setDashboardStats] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
-    const [user1, setUser] = useState(null);
     const [uploadingImages, setUploadingImages] = useState(false);
 
     const [bookForm, setBookForm] = useState({
@@ -43,31 +43,10 @@ const Dashboard = () => {
     });
 
     useEffect(() => {
-        const getUser = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession()
-
-            const currentUser = session?.user ?? null
-            setUser(currentUser)
-
-            if (currentUser?.user_metadata?.picture) {
-                setAvatarUrl(currentUser.user_metadata.picture)
-            }
+        if (user?.user_metadata?.picture) {
+            setAvatarUrl(user.user_metadata.picture);
         }
-        getUser();
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            const currentUser = session?.user ?? null
-            setUser(currentUser)
-
-            if (currentUser?.user_metadata?.picture) {
-                setAvatarUrl(currentUser.user_metadata.picture)
-            }
-        })
-        return () => {
-            listener.subscription.unsubscribe()
-        }
-    }, []);
+    }, [user]);
 
     const fetchUserData = async () => {
         if (!user?.id) return;
@@ -184,7 +163,7 @@ const Dashboard = () => {
 };
 
     const handleSubmitBook = async () => {
-        if (!user1?.id) {
+        if (!user?.id) {
             alert('User not authticated');
             return;
         }
@@ -204,7 +183,7 @@ const Dashboard = () => {
                 description: bookForm.description,
                 pictures: imageURLs,
                 thumbnailIndex: bookForm.thumbnailIndex,
-                sellerId: user1.id,
+                sellerId: user.id,
             };
             console.log('Sending book data:', newBookData);
             const response = await fetch('/api/books', {
@@ -419,7 +398,7 @@ const Dashboard = () => {
     }
   
 
-    if (loading || (user === undefined)) {
+    if (loading) {
         return (
             <LoadingScreen />
         );

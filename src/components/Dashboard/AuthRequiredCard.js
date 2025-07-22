@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from '../ui/button';
 import {LogIn} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const AuthRequiredCard = ()=>{
+    const router = useRouter();
      return (
             <div className="min-h-screen flex flex-col bg-muted">
                 <Navbar />
