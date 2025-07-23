@@ -2,32 +2,24 @@
 import dbConnect from '@/lib/db';
 import Book from '@/models/books';
 
+
 export async function GET(request) {
   try {
     await dbConnect();
-    
     const { searchParams } = new URL(request.url);
-    const sellerId = searchParams.get('sellerId');
-    
-    if (!sellerId) {
-      return Response.json(
-        { error: 'sellerId parameter is required' },
-        { status: 400 }
-      );
-    }
+    const filter = searchParams.get("filter");
+    const query = {};
 
-    const books = await Book.find({ seller: sellerId })
-      .sort({ createdAt: -1 });
-    
+    if (filter) query.category = filter;
+
+    const books = await Book.find(query).sort({ createdAt: -1 });
     return Response.json(books);
-  } catch (error) {
-    console.error('Database error:', error);
-    return Response.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("Error fetching books:", err);
+    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
 
 export async function POST(request) {
   try {

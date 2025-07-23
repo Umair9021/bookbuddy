@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import OAuthButton from "@/components/OAuthButton";
-import { CloudCog } from "lucide-react";
 
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
