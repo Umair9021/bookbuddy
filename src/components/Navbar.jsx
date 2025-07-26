@@ -52,7 +52,7 @@ export default function Navbar() {
   }
 
   const handleprofilepage = ()=>{
-    router.push('profile');
+    router.push('Profile');
   }
   
   const handledashboard = ()=>{

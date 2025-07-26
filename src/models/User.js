@@ -10,9 +10,14 @@ const userSchema = new mongoose.Schema({
   collegeName: { type: String, default: 'CTI College' },
   address: { type: String, default: '' },
   about: { type: String, default: '' },
-  username: { type: String, required: true },
+  username: { 
+    type: String, 
+    unique: true, 
+    sparse: true, 
+    required: false 
+  },
 }, {
-  timestamps: true // This adds createdAt and updatedAt fields
+  timestamps: true 
 });
 
 export default mongoose.models.User || mongoose.model('User', userSchema);

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -14,6 +15,8 @@ import { toast } from "sonner"
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import getImageSrc from '@/utils/getImageSrc';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const NewProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -37,12 +40,19 @@ const NewProfilePage = () => {
   });
 
   const [userBooks, setUserBooks] = useState([]);
-  const [originalUserInfo, setOriginalUserInfo] = useState(userInfo);
+  const [originalUserInfo, setOriginalUserInfo] = useState({
+    name: '',
+    username: '',
+    major: 'Science',
+    collegeName: 'CTI College',
+    address: '',
+    email: '',
+    about: '',
+    dp: '',
+    coverdp: '',
+  });
 
-  // Form validation errors
   const [validationErrors, setValidationErrors] = useState({});
-
-  // Check authentication and get user ID
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -73,7 +83,20 @@ const NewProfilePage = () => {
     checkAuth();
   }, [router]);
 
-  // Fetch user data when userId is available
+  const safeJsonParse = async (response) => {
+    const text = await response.text();
+    if (!text) {
+      throw new Error('Empty response from server');
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('Failed to parse JSON:', text);
+      throw new Error('Invalid JSON response from server');
+    }
+  };
+
   useEffect(() => {
     if (!userId) return;
 
@@ -82,10 +105,10 @@ const NewProfilePage = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch user data
         const userResponse = await fetch(`/api/users/${userId}`);
+
         if (userResponse.ok) {
-          const userData = await userResponse.json();
+          const userData = await safeJsonParse(userResponse);
           const mappedUserInfo = {
             name: userData.name || user?.user_metadata?.full_name || '',
             username: userData.username || '',
@@ -100,7 +123,6 @@ const NewProfilePage = () => {
           setUserInfo(mappedUserInfo);
           setOriginalUserInfo(mappedUserInfo);
         } else if (userResponse.status === 404) {
-          // User profile doesn't exist, create a basic one
           const basicUserInfo = {
             name: user?.user_metadata?.full_name || 'User',
             username: '',
@@ -115,17 +137,22 @@ const NewProfilePage = () => {
           setUserInfo(basicUserInfo);
           setOriginalUserInfo(basicUserInfo);
         } else {
-          const errorData = await userResponse.json();
-          throw new Error(errorData.error || 'Failed to fetch user data');
+          let errorMessage = 'Failed to fetch user data';
+          try {
+            const errorData = await safeJsonParse(userResponse);
+            errorMessage = errorData.error || errorMessage;
+          } catch (parseError) {
+            errorMessage = `Server error: ${userResponse.status} ${userResponse.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
 
-        // Fetch user books
-        const booksResponse = await fetch(`/api/books/user/${userId}`);
+        const booksResponse = await fetch(`/api/books?sellerId=${userId}`);
         if (booksResponse.ok) {
-          const booksData = await booksResponse.json();
+          const booksData = await safeJsonParse(booksResponse);
           setUserBooks(booksData);
         } else {
-          // If books API fails, set empty array (user might not have books yet)
+          console.warn('Failed to fetch user books, setting empty array');
           setUserBooks([]);
         }
 
@@ -138,7 +165,7 @@ const NewProfilePage = () => {
     };
 
     fetchUserData();
-  }, [userId, user]);
+  }, [userId]);
 
   const validateForm = () => {
     const errors = {};
@@ -171,68 +198,72 @@ const NewProfilePage = () => {
     setValidationErrors({});
   };
 
- const handleSave = async () => {
-  if (!validateForm()) {
-    toast.error("Please fix the validation errors before saving.");
-    return;
-  }
+  const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error("Please fix the validation errors before saving.");
+      return;
+    }
 
-  try {
-    setSaving(true);
-    setError(null);
+    
+    try {
+      setSaving(true);
+      setError(null);
+      const dataToSave = {
+        _id: userId,
+        name: userInfo.name.trim(),
+        username: userInfo.username.trim(),
+        major: userInfo.major,
+        collegeName: userInfo.collegeName,
+        address: userInfo.address,
+        email: userInfo.email.trim(),
+        about: userInfo.about,
+        dp: userInfo.dp,
+        coverdp: userInfo.coverdp,
+      };
 
-    // Prepare data for API
-    const dataToSave = {
-      _id: userId,
-      name: userInfo.name.trim(),
-      username: userInfo.username.trim(),
-      major: userInfo.major,
-      collegeName: userInfo.collegeName,
-      address: userInfo.address,
-      email: userInfo.email.trim(),
-      about: userInfo.about,
-      dp: userInfo.dp,
-      coverdp: userInfo.coverdp,
-    };
-
-    // First try to update (PUT)
-    let response = await fetch(`/api/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dataToSave),
-    });
-
-    // If update fails with 404, try to create (POST)
-    if (response.status === 404) {
-      response = await fetch('/api/users', {
-        method: 'POST',
+      let response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(dataToSave),
       });
-    }
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to save profile');
-    }
+      if (response.status === 404) {
+        response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToSave),
+        });
+      }
 
-    const updatedUser = await response.json();
-    setOriginalUserInfo(userInfo);
-    setIsEditing(false);
-    toast.success("Profile updated successfully!");
-    
-  } catch (error) {
-    console.error('Error saving user data:', error);
-    setError(error.message || "Failed to save profile changes.");
-    toast.error(error.message || "Failed to save profile changes.");
-  } finally {
-    setSaving(false);
-  }
-};
+      if (!response.ok) {
+        let errorMessage = 'Failed to save profile';
+        try {
+          const errorData = await safeJsonParse(response);
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const updatedUser = await safeJsonParse(response);
+      setOriginalUserInfo(userInfo);
+      setIsEditing(false);
+      toast.success("Profile updated successfully!");
+
+    } catch (error) {
+      console.error('Error saving user data:', error);
+      const errorMessage = error.message || "Failed to save profile changes.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCancel = () => {
     setUserInfo(originalUserInfo);
@@ -247,7 +278,6 @@ const NewProfilePage = () => {
       [name]: value
     }));
 
-    // Clear validation error when user starts typing
     if (validationErrors[name]) {
       setValidationErrors(prev => ({
         ...prev,
@@ -256,32 +286,50 @@ const NewProfilePage = () => {
     }
   };
 
-  const handleImageUpload = (type, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size must be less than 5MB");
-        return;
-      }
+  const handleImageUpload = async (type, event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error("Please select a valid image file");
-        return;
-      }
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error("Image size must be less than 5MB");
+    return;
+  }
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const fieldName = type === 'profileImage' ? 'dp' : 'coverdp';
-        setUserInfo(prev => ({
-          ...prev,
-          [fieldName]: e.target.result
-        }));
-      };
-      reader.readAsDataURL(file);
+  if (!file.type.startsWith('image/')) {
+    toast.error("Please select a valid image file");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to upload image');
     }
-  };
+
+    const fieldName = type === 'profileImage' ? 'dp' : 'coverdp';
+
+    setUserInfo(prev => ({
+      ...prev,
+      [fieldName]: result.url
+    }));
+
+    toast.success(`${type === 'profileImage' ? 'Profile' : 'Cover'} image updated`);
+
+  } catch (error) {
+    console.error('Upload failed:', error);
+    toast.error("Image upload failed");
+  }
+};
+
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -290,11 +338,55 @@ const NewProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading profile...</span>
+      <div className="min-h-screen flex flex-col bg-muted">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="text-center space-y-6">
+            {/* Circular Progress */}
+            <div className="relative w-24 h-24 mx-auto">
+              <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  className="text-gray-200"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  strokeLinecap="round"
+                  className="text-indigo-600"
+                  strokeDasharray="251.2"
+                  strokeDashoffset="62.8"
+                  style={{
+                    animation: 'spin 2s linear infinite'
+                  }}
+                />
+              </svg>
+              {/* BookBuddy Icon in Center */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800">BookBuddy</h3>
+              <p className="text-gray-600">Loading your data...</p>
+            </div>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -311,20 +403,6 @@ const NewProfilePage = () => {
           </Alert>
           <Button onClick={() => window.location.reload()}>
             Try Again
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!userId) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Authentication Required</h2>
-          <p className="text-gray-600 dark:text-gray-400">Please log in to view your profile.</p>
-          <Button onClick={() => router.push('/auth/login')} className="mt-4">
-            Go to Login
           </Button>
         </div>
       </div>
@@ -460,10 +538,6 @@ const NewProfilePage = () => {
                       >
                         <option value="Science">Science</option>
                         <option value="Engineering">Engineering</option>
-                        <option value="Arts">Arts</option>
-                        <option value="Business">Business</option>
-                        <option value="Medicine">Medicine</option>
-                        <option value="Other">Other</option>
                       </select>
                       <Input
                         name="collegeName"
@@ -571,8 +645,8 @@ const NewProfilePage = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400">{book.category}</p>
                         <div className="mt-2 flex items-center gap-2">
                           <span className={`px-2 py-1 text-xs rounded-full ${book.status === 'Available' || !book.isSold ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                              book.status === 'sold' || book.isSold ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
-                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                            book.status === 'sold' || book.isSold ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                             }`}>
                             {book.isSold ? 'Sold' : book.status || 'Available'}
                           </span>
@@ -592,9 +666,6 @@ const NewProfilePage = () => {
                 ) : (
                   <div className="col-span-full text-center py-8">
                     <p className="text-gray-500 dark:text-gray-400">No books listed yet.</p>
-                    <Button className="mt-4" variant="outline">
-                      Add Your First Book
-                    </Button>
                   </div>
                 )}
               </CardContent>

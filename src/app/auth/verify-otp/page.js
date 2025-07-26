@@ -24,7 +24,6 @@ export default function VerifyOtpPage() {
     }
   }, [searchParams]);
 
-  // Cooldown timer for resend button
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
@@ -54,7 +53,6 @@ export default function VerifyOtpPage() {
       });
 
       if (error) {
-        // Handle specific error messages
         if (error.message.includes('expired')) {
           setMessage('Code has expired. Please request a new one.');
         } else if (error.message.includes('invalid')) {
@@ -68,7 +66,6 @@ export default function VerifyOtpPage() {
         return;
       }
 
-      // Success
       if (purpose === 'signup') {
         setMessage('Account verified! Redirecting to dashboard...');
         setTimeout(() => router.push('/'), 2000);
@@ -104,7 +101,7 @@ export default function VerifyOtpPage() {
           setMessage(`Error resending code: ${error.message}`);
         } else {
           setMessage('New verification code sent!');
-          setResendCooldown(60); // 60 second cooldown
+          setResendCooldown(60); 
         }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -115,7 +112,7 @@ export default function VerifyOtpPage() {
           setMessage(`Error resending code: ${error.message}`);
         } else {
           setMessage('New verification code sent!');
-          setResendCooldown(60); // 60 second cooldown
+          setResendCooldown(60);
         }
       }
     } catch (error) {
@@ -125,9 +122,8 @@ export default function VerifyOtpPage() {
     }
   };
 
-  // Handle OTP input - only allow numbers and limit to 6 digits
   const handleOtpChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const value = e.target.value.replace(/\D/g, ''); 
     if (value.length <= 6) {
       setOtp(value);
     }

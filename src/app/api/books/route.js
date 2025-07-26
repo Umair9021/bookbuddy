@@ -2,21 +2,28 @@
 import dbConnect from '@/lib/db';
 import Book from '@/models/books';
 
-
 export async function GET(request) {
   try {
     await dbConnect();
+
     const { searchParams } = new URL(request.url);
-    const filter = searchParams.get("filter");
+    const sellerId = searchParams.get('sellerId');
+    const filter = searchParams.get('filter');
+
     const query = {};
 
+    if (sellerId) query.seller = sellerId;
     if (filter) query.category = filter;
 
     const books = await Book.find(query).sort({ createdAt: -1 });
+
     return Response.json(books);
-  } catch (err) {
-    console.error("Error fetching books:", err);
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    return Response.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -54,7 +61,6 @@ export async function POST(request) {
   }
 }
 
-// Add PUT endpoint for updates
 export async function PUT(request) {
   try {
     await dbConnect();
@@ -88,7 +94,6 @@ export async function PUT(request) {
   }
 }
 
-// Add DELETE endpoint
 export async function DELETE(request) {
   try {
     await dbConnect();

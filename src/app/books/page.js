@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/pagination";
 import getImageSrc from '@/utils/getImageSrc';
 
-// ✅ FIXED - Correct navigation array
 const navigation = [
   { name: "All Books", href: "/books", current: false, filter: null },
   { name: "First Year", href: "/books", current: false, filter: "First Year" },
@@ -180,7 +179,6 @@ export default function AllBooksPage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-muted">

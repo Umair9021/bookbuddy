@@ -39,7 +39,7 @@ export default function SignupPage() {
         setSuccessMessage(
           `Please check your email (${email}) and click the confirmation link to complete your registration.`
         );
-        // Don't redirect immediately, let user know to check email
+        
       }
     } catch (error) {
       setErrorMessage("An unexpected error occurred. Please try again.");
