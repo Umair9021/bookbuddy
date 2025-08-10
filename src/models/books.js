@@ -26,7 +26,6 @@ status: {
         enum: ['Available', 'sold', 'reserved'],
         default: 'Available',
         required: true,
-        min: [0,'Status should be among one of them : Availble, Sold and Reserved']
     },
     isSold:{type:Boolean, default:false},
     soldTo: {type: String, ref: 'User'},

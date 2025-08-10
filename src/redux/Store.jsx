@@ -9,4 +9,3 @@ export const store = configureStore({
   },
 });
 
-// Remove TypeScript-only types, so nothing to export for RootState or AppDispatch in JS

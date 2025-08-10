@@ -15,7 +15,10 @@ export async function GET(request) {
     if (sellerId) query.seller = sellerId;
     if (filter) query.category = filter;
 
-    const books = await Book.find(query).sort({ createdAt: -1 });
+    const books = await Book.find(query)
+      .populate('seller', 'name email') // Only populate name and email fields
+      .sort({ createdAt: -1 })
+      .lean();
 
     return Response.json(books);
   } catch (error) {

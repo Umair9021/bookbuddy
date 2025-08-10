@@ -1,96 +1,107 @@
-// components/Footer.jsx
-import { BookOpen, Mail, Facebook, Twitter, Instagram } from 'lucide-react';
-import Link from 'next/link';
+import React from 'react';
+import { Button } from './ui/button';
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-white pt-12 pb-6">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* About Section */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <BookOpen className="h-6 w-6" />
-              <h3 className="text-xl font-bold">BookBuddy</h3>
-            </div>
-            <p className="text-primary-foreground/80">
-              Your trusted marketplace for diploma students to buy and sell textbooks.
+    <footer className="bg-black text-white py-12">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Responsive grid: 1 col on mobile, 2 on sm, 4 on lg */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          {/* BookSwap Info */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">BookSwap</h3>
+            <p className="text-gray-400 text-sm">
+              The trusted marketplace for diploma students to buy and sell used textbooks.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="hover:text-primary-foreground/80 transition">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="hover:text-primary-foreground/80 transition">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="hover:text-primary-foreground/80 transition">
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Quick Links</h4>
-            <ul className="space-y-2">
-              <li><Link href="/search" className="hover:text-primary-foreground/80 transition">Search Books</Link></li>
-              <li><Link href="/upload" className="hover:text-primary-foreground/80 transition">Upload Books</Link></li>
-              <li><Link href="/#" className="hover:text-primary-foreground/80 transition">Browse All</Link></li>
-              <li><Link href="/#" className="hover:text-primary-foreground/80 transition">FAQ</Link></li>
+          <div>
+            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Browse Books
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Sell Books
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  How It Works
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Safety Guidelines
+                </Button>
+              </li>
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Contact Us</h4>
-            <div className="flex items-start space-x-3">
-              <Mail className="h-5 w-5 mt-1 flex-shrink-0" />
-              <div>
-                <p>support@bookbuddy.edu</p>
-                <p className="text-sm text-primary-foreground/80">Typically replies within 24 hours</p>
-              </div>
-            </div>
-            <div className="pt-2">
-              <p>123 Campus Drive</p>
-              <p>Education City, EC 10101</p>
-            </div>
+          {/* Departments */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Departments</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Computer Science
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Electrical Engineering
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Civil Engineering
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Mechanical Engineering
+                </Button>
+              </li>
+            </ul>
           </div>
 
-          {/* Newsletter */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Stay Updated</h4>
-            <p className="text-primary-foreground/80">
-              Subscribe to our newsletter for the latest book arrivals and deals.
-            </p>
-            <form className="flex flex-col space-y-3">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                className="px-4 py-2 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
-              />
-              <button 
-                type="submit" 
-                className="bg-white text-primary px-4 py-2 rounded font-medium hover:bg-gray-100 transition"
-              >
-                Subscribe
-              </button>
-            </form>
+          {/* Support */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">Support</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Help Center
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Contact Us
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Terms of Service
+                </Button>
+              </li>
+              <li>
+                <Button variant="link" className="text-gray-400 hover:text-white p-0 h-auto">
+                  Privacy Policy
+                </Button>
+              </li>
+            </ul>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-primary-foreground/20 pt-6 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-primary-foreground/60 text-sm">
-            © {new Date().getFullYear()} BookBuddy. All rights reserved.
+        <div className="border-t border-gray-800 pt-8 text-center">
+          <p className="text-gray-400 text-sm">
+            © 2024 BookSwap. All rights reserved. Made with ❤️ for diploma students.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/#" className="text-primary-foreground/60 hover:text-primary-foreground/80 text-sm transition">
-              Privacy Policy
-            </Link>
-            <Link href="/#" className="text-primary-foreground/60 hover:text-primary-foreground/80 text-sm transition">
-              Terms of Service
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

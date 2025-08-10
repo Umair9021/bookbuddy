@@ -156,10 +156,10 @@ function CarouselPrevious({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full bg-white/80 hover:bg-white shadow z-20 flex items-center justify-center",
+        "absolute size-15 rounded-full bg-white/80 hover:bg-white shadow z-20 flex items-center justify-center",
         orientation === "horizontal"
-          ? "top-1/2 left-3 -translate-y-1/2"
-          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+          ? "top-1/2 left-[-5] -translate-y-1/2"
+          : "-top-12 left-1 -translate-x-1/2 rotate-90",
         className
       )}
       disabled={!canScrollPrev}
@@ -186,9 +186,9 @@ function CarouselNext({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full bg-white/80 hover:bg-white shadow z-20 flex items-center justify-center",
+        "absolute size-15 rounded-full bg-white/80 hover:bg-white shadow z-20 flex items-center justify-center",
         orientation === "horizontal"
-          ? "top-1/2 right-3 -translate-y-1/2"
+          ? "top-1/2 right-[-5] -translate-y-1/2"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
         className
       )}

@@ -5,13 +5,24 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client'
 import OverviewPage from '@/components/Dashboard/OverviewPage';
 import MyBook from '@/components/Dashboard/MyBook';
-import AuthRequiredCard from '@/components/Dashboard/AuthRequiredCard';
 import { Package, Search } from 'lucide-react';
-import LoadingScreen from '@/components/Dashboard/LoadingScreen';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import AddBook from '@/components/Dashboard/AddBook';
 import { useRouter } from 'next/navigation';
-import { toast } from "sonner"
+import { toast } from "sonner";
+import {
+    User,
+    LogOut,
+} from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import getImageSrc from '@/utils/getImageSrc';
 
 const Dashboard = () => {
 
@@ -30,8 +41,6 @@ const Dashboard = () => {
     const [dashboardStats, setDashboardStats] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
     const [uploadingImages, setUploadingImages] = useState(false);
-
-    console.log("user in dashboard", user);
 
     const [bookForm, setBookForm] = useState({
         title: '',
@@ -77,7 +86,6 @@ const Dashboard = () => {
         if (user?.user_metadata?.picture) {
             setAvatarUrl(user.user_metadata.picture);
         }
-        console.log("user comes", user);
 
     }, [user]);
 
@@ -218,7 +226,6 @@ const Dashboard = () => {
                 thumbnailIndex: bookForm.thumbnailIndex,
                 sellerId: user.id,
             };
-            console.log('Sending book data:', newBookData);
             const response = await fetch('/api/books', {
                 method: 'POST',
                 headers: {
@@ -229,7 +236,6 @@ const Dashboard = () => {
 
             if (response.ok) {
                 const createdBook = await response.json();
-                console.log('Created book:', createdBook);
 
                 setBookForm({
                     title: '',
@@ -287,7 +293,6 @@ const Dashboard = () => {
                 },
                 body: JSON.stringify(updateData),
             });
-            console.log(response);
             if (response.ok) {
 
                 setBookForm({
@@ -423,7 +428,7 @@ const Dashboard = () => {
     }
 
     const handleprofile = () => {
-        router.push('profile');
+        router.push('Profile');
     }
 
     const handlemainpage = () => {
@@ -521,11 +526,6 @@ const Dashboard = () => {
                 setSidebarOpen={setSidebarOpen}
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
-                userDropdownOpen={userDropdownOpen}
-                setUserDropdownOpen={setUserDropdownOpen}
-                avatarUrl={avatarUrl}
-                handleSignOut={handleSignOut}
-                handleprofile={handleprofile}
                 handlemainpage={handlemainpage}
             />
 
@@ -559,13 +559,46 @@ const Dashboard = () => {
                             )}
 
                             {/* User Profile */}
-                            <div className="w-10 h-10  rounded-full flex items-center justify-center">
-                                <img
-                                    className="w-10 h-10 rounded-full"
-                                    src={avatarUrl || '/image.avif'}
-                                    alt="User Profile"
-                                />
-                            </div>
+                            <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+                                <DropdownMenuTrigger asChild>
+                                    {sidebarOpen ? (
+                                        <button className="flex items-center space-x-3 pt-0 p-2 rounded-lg  transition-colors">
+                                            <div className="w-10 h-10  rounded-full flex items-center justify-center">
+                                                <img
+                                                    className="w-10 h-10 rounded-full"
+                                                    src={getImageSrc(avatarUrl)}
+                                                    alt="User Profile"
+                                                />
+                                            </div>
+                                        </button>
+                                    ) : (
+                                        <button className="flex items-center space-x-3 p-2 rounded-lg  transition-colors">
+                                            <div className="w-10 h-10  rounded-full flex items-center justify-center">
+                                                <img
+                                                    className="w-10 h-10 rounded-full"
+                                                    src={getImageSrc(avatarUrl)}
+                                                    alt="User Profile"
+                                                />
+                                            </div>
+                                        </button>
+                                    )}
+
+                                </DropdownMenuTrigger>
+
+                                <DropdownMenuContent align="end" className="mr-5 p-2 mb-2">
+                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="flex items-center space-x-2" onClick={handleprofile}>
+                                        <User className="h-4 w-4" />
+                                        <span>Profile</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="flex items-center space-x-2 text-red-600" onClick={handleSignOut}>
+                                        <LogOut className="h-4 w-4" />
+                                        <span>Log out</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
                 </header>

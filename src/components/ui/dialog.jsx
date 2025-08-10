@@ -27,7 +27,7 @@ function DialogPortal({
 function DialogClose({
   ...props
 }) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+  return <DialogPrimitive.Close data-slot="dialog-close"{...props} />;
 }
 
 function DialogOverlay({
