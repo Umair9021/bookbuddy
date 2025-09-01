@@ -1,6 +1,8 @@
+
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const AuthContext = createContext();
@@ -9,29 +11,82 @@ export function AuthProvider({ children }) {
   const supabase = createClientComponentClient();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const getUser = async () => {
+    const checkUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-      setUser(data?.user || null);
+      const currentUser = data?.user || null;
+
+      if (currentUser) {
+        // 🔍 Check MongoDB for suspension
+        try {
+          const res = await fetch(`/api/users/${currentUser.id}`);
+          const dbUser = await res.json();
+
+          // if (dbUser?.isSuspended) {
+          //   // 🚫 If suspended → force signout
+          //   await supabase.auth.signOut();
+          //   setUser(null);
+          //   router.replace("/auth/suspended"); // a dedicated page or popup
+          //   return;
+          // }
+          if (res.ok) {
+            const dbUser = await res.json();
+            if (dbUser?.isSuspended) {
+              await supabase.auth.signOut();
+              setUser(null);
+              router.replace("/auth/suspended");
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("Error checking suspension:", err);
+        }
+      }
+
+      setUser(currentUser);
       setLoading(false);
     };
 
-    getUser();
+    checkUser();
 
+    // 🔄 Listen for auth changes
     const {
-  data: { subscription },
-} = supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-    setUser(session?.user || null);
-    setLoading(false);
-  }
-});
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        const currentUser = session?.user || null;
+
+        if (currentUser) {
+          // Check MongoDB again
+          try {
+            const res = await fetch(`/api/users/${currentUser.id}`);
+            const dbUser = await res.json();
+
+            if (dbUser?.isSuspended) {
+              await supabase.auth.signOut();
+              setUser(null);
+              router.replace("/auth/suspended");
+              return;
+            }
+          } catch (err) {
+            console.error("Error checking suspension:", err);
+          }
+        }
+
+        setUser(currentUser);
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+      }
+      setLoading(false);
+    });
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe?.();
     };
-  }, [supabase]);
+
+  }, [supabase, router]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

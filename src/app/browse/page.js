@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown} from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import BookDetailsModal from '@/components/BookDetailsModal';
-import {  DropdownMenu,DropdownMenuContent,DropdownMenuItem, DropdownMenuTrigger} from '@/components/ui/dropdown-menu';
-import {  Pagination,  PaginationContent,  PaginationEllipsis,PaginationItem,PaginationLink,PaginationNext,PaginationPrevious} from "@/components/ui/pagination";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import getImageSrc from '@/utils/getImageSrc';
@@ -25,7 +25,7 @@ const navigation = [
 const BookSwap = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('Year');
-  const [selectedCategory, setSelectedCategory] = useState('Category');
+  const [selecteddepartment, setSelecteddepartment] = useState('department');
   const [selectedCondition, setSelectedCondition] = useState('Condition');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,7 @@ const BookSwap = () => {
   // Dropdown options
   const yearOptions = ['All', 'First Year', 'Second Year', 'Third Year'];
   const conditionOptions = ['New', 'Like New', 'Good', 'Fair'];
-  const categoryOptions = ['Computer Science', 'Electrical Eng', 'Mechanical Eng', 'Applied Physics'];
+  const departmentOptions = ['Computer Science', 'Electrical Eng', 'Mechanical Eng', 'Applied Physics'];
 
   // Function to get condition badge styling
   const getConditionBadgeStyle = (condition) => {
@@ -125,23 +125,25 @@ const BookSwap = () => {
   const getFilteredBooks = () => {
     let filtered = books;
 
-    filtered = filtered.filter(book => book.status !== 'Sold');
+    filtered = filtered.filter(
+      (book) => book.status !== "sold" && !book.isHidden
+    );
 
     if (filter) {
       filtered = filtered.filter((book) => {
-        if (filter === "First Year") return book.category === "First Year";
-        if (filter === "Second Year") return book.category === "Second Year";
-        if (filter === "Third Year") return book.category === "Third Year";
+        if (filter === "First Year") return book.department === "First Year";
+        if (filter === "Second Year") return book.department === "Second Year";
+        if (filter === "Third Year") return book.department === "Third Year";
         return true;
       });
     }
 
     if (selectedYear !== 'Year' && selectedYear !== 'All') {
-      filtered = filtered.filter(book => book.category === selectedYear);
+      filtered = filtered.filter(book => book.department === selectedYear);
     }
 
-    if (selectedCategory !== 'Category') {
-      filtered = filtered.filter(book => book.subject === selectedCategory);
+    if (selecteddepartment !== 'department') {
+      filtered = filtered.filter(book => book.subject === selecteddepartment);
     }
 
     if (selectedCondition !== 'Condition') {
@@ -318,25 +320,25 @@ const BookSwap = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Category Dropdown */}
+            {/* department Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   className="h-10 px-4 border-gray-300 min-w-[120px] justify-between flex-1 sm:flex-auto sm:min-w-[120px]"
                 >
-                  {selectedCategory}
+                  {selecteddepartment}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {categoryOptions.map((category) => (
+                {departmentOptions.map((department) => (
                   <DropdownMenuItem
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={department}
+                    onClick={() => setSelecteddepartment(department)}
                     className="cursor-pointer"
                   >
-                    {category}
+                    {department}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -372,7 +374,7 @@ const BookSwap = () => {
         {filteredBooks.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {searchQuery || selectedYear !== 'Year' || selectedCategory !== 'Category' || selectedCondition !== 'Condition'
+              {searchQuery || selectedYear !== 'Year' || selecteddepartment !== 'department' || selectedCondition !== 'Condition'
                 ? 'No books found matching your criteria.'
                 : 'No books found.'}
             </p>
@@ -411,9 +413,9 @@ const BookSwap = () => {
                     <Badge className={getConditionBadgeStyle(book.condition)}>
                       {book.condition}
                     </Badge>
-                    {book.category && (
+                    {book.department && (
                       <Badge variant="outline">
-                        {book.category}
+                        {book.department}
                       </Badge>
                     )}
                   </div>

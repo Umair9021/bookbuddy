@@ -25,6 +25,11 @@ const NewProfilePage = () => {
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
   const [user, setUser] = useState(null);
+  const [pendingImages, setPendingImages] = useState({
+    coverImage: null,
+    profileImage: null,
+  });
+
   const router = useRouter();
 
   const [userInfo, setUserInfo] = useState({
@@ -204,10 +209,33 @@ const NewProfilePage = () => {
       return;
     }
 
-    
     try {
       setSaving(true);
       setError(null);
+
+      let coverdpUrl = userInfo.coverdp;
+      let dpUrl = userInfo.dp;
+
+      // Upload cover if new
+      if (pendingImages.coverImage) {
+        const formData = new FormData();
+        formData.append("file", pendingImages.coverImage);
+        const response = await fetch("/api/upload", { method: "POST", body: formData });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to upload cover image");
+        coverdpUrl = result.url;
+      }
+
+      // Upload dp if new
+      if (pendingImages.profileImage) {
+        const formData = new FormData();
+        formData.append("file", pendingImages.profileImage);
+        const response = await fetch("/api/upload", { method: "POST", body: formData });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to upload profile image");
+        dpUrl = result.url;
+      }
+
       const dataToSave = {
         _id: userId,
         name: userInfo.name.trim(),
@@ -217,49 +245,43 @@ const NewProfilePage = () => {
         address: userInfo.address,
         email: userInfo.email.trim(),
         about: userInfo.about,
-        dp: userInfo.dp,
-        coverdp: userInfo.coverdp,
+        dp: dpUrl,
+        coverdp: coverdpUrl,
       };
 
       let response = await fetch(`/api/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSave),
       });
 
       if (response.status === 404) {
-        response = await fetch('/api/users', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        response = await fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(dataToSave),
         });
       }
 
       if (!response.ok) {
-        let errorMessage = 'Failed to save profile';
+        let errorMessage = "Failed to save profile";
         try {
           const errorData = await safeJsonParse(response);
           errorMessage = errorData.error || errorMessage;
-        } catch (parseError) {
+        } catch {
           errorMessage = `Server error: ${response.status} ${response.statusText}`;
         }
         throw new Error(errorMessage);
       }
 
-      const updatedUser = await safeJsonParse(response);
+      await safeJsonParse(response);
       setOriginalUserInfo(userInfo);
+      setPendingImages({ coverImage: null, profileImage: null }); // reset
       setIsEditing(false);
       toast.success("Profile updated successfully!");
-
     } catch (error) {
-      console.error('Error saving user data:', error);
-      const errorMessage = error.message || "Failed to save profile changes.";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      console.error("Error saving user data:", error);
+      toast.error(error.message || "Failed to save profile changes.");
     } finally {
       setSaving(false);
     }
@@ -286,49 +308,36 @@ const NewProfilePage = () => {
     }
   };
 
-  const handleImageUpload = async (type, event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  const handleImageUpload = (type, event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    toast.error("Image size must be less than 5MB");
-    return;
-  }
-
-  if (!file.type.startsWith('image/')) {
-    toast.error("Please select a valid image file");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to upload image');
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
     }
 
-    const fieldName = type === 'profileImage' ? 'dp' : 'coverdp';
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file");
+      return;
+    }
+
+    // Store in pending state for preview
+    setPendingImages(prev => ({
+      ...prev,
+      [type]: file,
+    }));
+
+    // Show preview locally
+    const previewUrl = URL.createObjectURL(file);
+    const fieldName = type === "profileImage" ? "dp" : "coverdp";
 
     setUserInfo(prev => ({
       ...prev,
-      [fieldName]: result.url
+      [fieldName]: previewUrl, 
     }));
 
-    toast.success(`${type === 'profileImage' ? 'Profile' : 'Cover'} image updated`);
-
-  } catch (error) {
-    console.error('Upload failed:', error);
-    toast.error("Image upload failed");
-  }
-};
+  };
 
 
   const getInitials = (name) => {
@@ -642,7 +651,7 @@ const NewProfilePage = () => {
                       />
                       <CardContent className="p-4">
                         <h3 className="font-semibold truncate">{book.title}</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{book.category}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{book.department}</p>
                         <div className="mt-2 flex items-center gap-2">
                           <span className={`px-2 py-1 text-xs rounded-full ${book.status === 'Available' || !book.isSold ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
                             book.status === 'sold' || book.isSold ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :

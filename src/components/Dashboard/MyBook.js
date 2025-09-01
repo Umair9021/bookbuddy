@@ -61,7 +61,7 @@ const MyBook = ({
                         <thead>
                             <tr className="border-b border-gray-200">
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Book</th>
-                                <th className="text-left py-3 px-4 font-medium text-gray-900">Category</th>
+                                <th className="text-left py-3 px-4 font-medium text-gray-900">Department</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Price</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
@@ -74,7 +74,7 @@ const MyBook = ({
                                         <div className="font-medium text-gray-900">{book.title}</div>
                                     </td>
                                     <td className="py-4 px-4">
-                                        <div className="font-small text-gray-900">{book.category}</div>
+                                        <div className="font-small text-gray-900">{book.department}</div>
                                     </td>
                                     <td className="py-4 px-4 text-gray-600">{book.price}</td>
                                     <td className="py-4 px-4">

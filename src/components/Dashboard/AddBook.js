@@ -60,7 +60,7 @@ const AddBook = ({
                                 </div>
                             </div>
 
-                            {/* Condition and Category Row */}
+                            {/* Condition and department Row */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-800 mb-3">Condition</label>
@@ -77,13 +77,13 @@ const AddBook = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-800 mb-3">Category</label>
+                                    <label className="block text-sm font-semibold text-gray-800 mb-3">Department</label>
                                     <select
-                                        value={bookForm.category}
-                                        onChange={(e) => handleFormChange('category', e.target.value)}
+                                        value={bookForm.department}
+                                        onChange={(e) => handleFormChange('department', e.target.value)}
                                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all duration-200 text-lg bg-white"
                                     >
-                                        <option value="">Select Category</option>
+                                        <option value="">Select department</option>
                                         <option>First Year</option>
                                         <option>Second Year</option>
                                         <option>Third Year</option>

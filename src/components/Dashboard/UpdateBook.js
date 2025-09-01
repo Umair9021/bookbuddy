@@ -93,13 +93,13 @@ const UpdateBook = ({
 
         let newThumbnailIndex = bookForm.thumbnailIndex;
         if (index === bookForm.thumbnailIndex) {
-            newThumbnailIndex = 0; 
+            newThumbnailIndex = 0;
         } else if (index < bookForm.thumbnailIndex) {
             newThumbnailIndex = bookForm.thumbnailIndex - 1;
         }
 
         handleFormChange('images', newImages);
-       
+
         handleFormChange('thumbnailIndex', Math.max(0, Math.min(newThumbnailIndex, newImages.length - 1)));
     };
 
@@ -112,7 +112,7 @@ const UpdateBook = ({
     const isSlotDisabled = (index) => {
         if (index === 0) return false;
         if (index === 1) return false;
-        if (index === 2) return !bookForm.images[1]; 
+        if (index === 2) return !bookForm.images[1];
         return false;
     };
 
@@ -168,7 +168,7 @@ const UpdateBook = ({
                                 </div>
                             </div>
 
-                            {/* Condition and Category Row */}
+                            {/* Condition and department Row */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-800 mb-2">Condition</label>
@@ -198,13 +198,13 @@ const UpdateBook = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-800 mb-2">Category</label>
+                                    <label className="block text-sm font-semibold text-gray-800 mb-2">Department</label>
                                     <select
-                                        value={bookForm.category}
-                                        onChange={(e) => handleFormChange('category', e.target.value)}
+                                        value={bookForm.department}
+                                        onChange={(e) => handleFormChange('department', e.target.value)}
                                         className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all duration-200 bg-white"
                                     >
-                                        <option value="">Select Category</option>
+                                        <option value="">Select department</option>
                                         <option>First Year</option>
                                         <option>Second Year</option>
                                         <option>Third Year</option>
@@ -307,12 +307,14 @@ const UpdateBook = ({
                                                                         : 'border-gray-200 group-hover:border-gray-300'
                                                                         }`}
                                                                 />
-                                                                <button
-                                                                    onClick={() => handleRemoveImage(index)}
-                                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-lg"
-                                                                >
-                                                                    <X className="h-3 w-3" />
-                                                                </button>
+                                                                {bookForm.images.length > 1 && (
+                                                                    <button
+                                                                        onClick={() => handleRemoveImage(index)}
+                                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-lg"
+                                                                    >
+                                                                        <X className="h-3 w-3" />
+                                                                    </button>
+                                                                )}
                                                                 {bookForm.thumbnailIndex === index && (
                                                                     <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
                                                                         <Star className="h-2 w-2 fill-current" />
@@ -323,8 +325,8 @@ const UpdateBook = ({
                                                         ) : (
                                                             <div
                                                                 className={`h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-all cursor-pointer ${isDisabled
-                                                                        ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50'
-                                                                        : 'border-gray-300 text-gray-400 hover:border-indigo-400 hover:text-indigo-500'
+                                                                    ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50'
+                                                                    : 'border-gray-300 text-gray-400 hover:border-indigo-400 hover:text-indigo-500'
                                                                     }`}
                                                                 onClick={() => !isDisabled && fileInputRef.current && fileInputRef.current.click()}
                                                             >

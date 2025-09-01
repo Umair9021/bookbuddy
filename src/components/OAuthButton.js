@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 export default function OAuthButton() {
 
   const redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+  
  const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',

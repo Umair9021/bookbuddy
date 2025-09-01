@@ -22,9 +22,9 @@ const Sidebar = ({
         { id: 'books', label: 'My Books', icon: BookOpen },
     ];
     return (
-         <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+         <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white shadow-lg h-full transition-all duration-300 flex flex-col`}>
                 {/* Sidebar Header */}
-                <div className="p-5 border-b border-gray-200">
+                <div className="hidden md:block p-5 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         {sidebarOpen && (
                             <div className="flex items-center space-x-2">

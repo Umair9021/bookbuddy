@@ -1,17 +1,16 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client'
 import OverviewPage from '@/components/Dashboard/OverviewPage';
 import MyBook from '@/components/Dashboard/MyBook';
-import { Package, Search } from 'lucide-react';
+import { Package, Search, Menu, X,UserCircle } from 'lucide-react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import AddBook from '@/components/Dashboard/AddBook';
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner";
 import {
-    User,
+    User, BookOpen,
     LogOut,
 } from 'lucide-react';
 import {
@@ -30,6 +29,7 @@ const Dashboard = () => {
     const [user, setUser] = useState(null);
 
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [searchQuery, setSearchQuery] = useState('');
@@ -42,16 +42,70 @@ const Dashboard = () => {
     const [loadingData, setLoadingData] = useState(true);
     const [uploadingImages, setUploadingImages] = useState(false);
 
+    const [warnings, setWarnings] = useState([]);
+
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const fetchWarnings = async () => {
+            try {
+                const res = await fetch(`/api/admin/warnings?userId=${user.id}`);
+                if (!res.ok) throw new Error("Failed to fetch warnings");
+                const data = await res.json();
+                setWarnings(data);
+            } catch (err) {
+                console.error("Warning fetch error:", err);
+                setWarnings([]);
+            }
+        };
+
+        fetchWarnings();
+    }, [user]);
+
     const [bookForm, setBookForm] = useState({
         title: '',
         price: '',
         description: '',
         condition: 'New',
-        category: 'First Year',
+        department: 'First Year',
         status: 'Available',
         images: [],
         thumbnailIndex: 0,
     });
+
+    // Close mobile menu when tab changes
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setMobileMenuOpen(false);
+    };
+
+    // Close mobile menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (mobileMenuOpen && !event.target.closest('.mobile-sidebar')) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [mobileMenuOpen]);
+
+    // Handle responsive behavior
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768) {
+                setMobileMenuOpen(false);
+                setSidebarOpen(true);
+            } else {
+                setSidebarOpen(false);
+            }
+        };
+
+        handleResize(); // Initial check
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const getUser = async () => {
@@ -140,7 +194,7 @@ const Dashboard = () => {
         } else {
             const filtered = books.filter(book =>
                 book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                book.category.toLowerCase().includes(searchQuery.toLowerCase())
+                book.department.toLowerCase().includes(searchQuery.toLowerCase())
             );
             setFilteredBooks(filtered);
         }
@@ -171,22 +225,7 @@ const Dashboard = () => {
             thumbnailIndex: index
         }));
     };
-    const removeImage = async (index) => {
-        const imageToRemove = bookForm.images[index];
-
-        if (imageToRemove.publicId) {
-            try {
-                const response = await fetch(`/api/upload?publicId=${imageToRemove.publicId}`, {
-                    method: 'DELETE'
-                });
-                if (!response.ok) {
-                    console.error('Failed to delete image from Cloudinary');
-                }
-            } catch (error) {
-                console.error('Error deleting image from Cloudinary:', error);
-            }
-        }
-
+    const removeImage = (index) => {
         const newImages = bookForm.images.filter((_, i) => i !== index);
 
         let newThumbnailIndex = bookForm.thumbnailIndex;
@@ -203,26 +242,29 @@ const Dashboard = () => {
         }));
     };
 
+
     const handleSubmitBook = async () => {
         if (!user?.id) {
             alert('User not authticated');
             return;
         }
-        if (!bookForm.title || !bookForm.price || !bookForm.description || !bookForm.category || !bookForm.condition) {
+        if (!bookForm.title || !bookForm.price || !bookForm.description || !bookForm.department || !bookForm.condition) {
             alert('Please fill all required filed');
             return;
         }
-        const imageURLs = bookForm.images.map(image => image.url || '');
         try {
-            const imageURLs = bookForm.images.map(image => image.url || '');
+            const pictures = bookForm.images.map(image => ({
+                url: image.url,
+                public_id: image.publicId || image.public_id
+            }));
 
             const newBookData = {
                 title: bookForm.title,
                 price: parseFloat(bookForm.price),
-                category: bookForm.category,
+                department: bookForm.department,
                 condition: bookForm.condition,
                 description: bookForm.description,
-                pictures: imageURLs,
+                pictures,
                 thumbnailIndex: bookForm.thumbnailIndex,
                 sellerId: user.id,
             };
@@ -234,29 +276,28 @@ const Dashboard = () => {
                 body: JSON.stringify(newBookData),
             })
 
-            if (response.ok) {
-                const createdBook = await response.json();
-
-                setBookForm({
-                    title: '',
-                    price: '',
-                    description: '',
-                    condition: 'New',
-                    category: 'First Year',
-                    status: 'Available',
-                    images: [],
-                    thumbnailIndex: 0,
-                })
-
-                await fetchUserData();
-                toast("Book added successfully!")
-
-                setActiveTab('books');
-            }
-            else {
+            if (!response.ok) {
                 const errorData = await response.json();
                 alert(`Error: ${errorData.error}`);
+                return;
             }
+
+            setBookForm({
+                title: '',
+                price: '',
+                description: '',
+                condition: 'New',
+                department: 'First Year',
+                status: 'Available',
+                images: [],
+                thumbnailIndex: 0,
+            })
+
+            await fetchUserData();
+            toast("Book added successfully!")
+
+            setActiveTab('books');
+
         }
         catch (error) {
             console.error('Error creating book: ', error);
@@ -271,7 +312,7 @@ const Dashboard = () => {
             if (bookForm.title) updateData.title = bookForm.title;
             if (bookForm.price) updateData.price = parseFloat(bookForm.price);
             if (bookForm.description) updateData.description = bookForm.description;
-            if (bookForm.category) updateData.category = bookForm.category;
+            if (bookForm.department) updateData.department = bookForm.department;
             if (bookForm.condition) updateData.condition = bookForm.condition;
             if (bookForm.status) updateData.status = bookForm.status;
 
@@ -300,7 +341,7 @@ const Dashboard = () => {
                     price: '',
                     description: '',
                     condition: 'New',
-                    category: 'First Year',
+                    department: 'First Year',
                     images: [],
                     thumbnailIndex: 0,
                 });
@@ -344,22 +385,28 @@ const Dashboard = () => {
     const handleEditBook = (book) => {
         setSelectedBook(book);
 
-        const existingImages = book.pictures ? book.pictures.map(url => {
-            const publicId = url.includes('cloudinary.com') ?
-                url.split('/').pop().split('.')[0] : null;
+        const existingImages = book.pictures
+            ? book.pictures.map(pic => {
+                const publicId = pic.public_id
+                    ? pic.public_id
+                    : pic.url.includes('cloudinary.com')
+                        ? pic.url.split('/').pop().split('.')[0]
+                        : null;
 
-            return {
-                url: url,
-                publicId: publicId
-            };
-        }) : [];
+                return {
+                    url: pic.url,
+                    public_id: publicId
+                };
+            })
+            : [];
+
 
         setBookForm(prev => ({
             ...prev,
             title: book.title,
             price: book.price,
             description: book.description,
-            category: book.category,
+            department: book.department,
             condition: book.condition,
             status: book.status,
             images: existingImages,
@@ -490,7 +537,7 @@ const Dashboard = () => {
                 return (
                     <MyBook
                         filteredBooks={filteredBooks}
-                        setActiveTab={setActiveTab}
+                        setActiveTab={handleTabChange}
                         handleEditBook={handleEditBook}
                         handleDeleteBook={handleDeleteBook}
                         editDialogOpen={editDialogOpen}
@@ -519,33 +566,156 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="flex h-screen bg-gray-50">
+        <div>
+            {warnings.length > 0 && (
+                <div className="relative bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white py-2 shadow-md  overflow-hidden">
+                    <div className="animate-marquee whitespace-nowrap flex items-center">
+                        {warnings.map((w, i) => (
+                            <span
+                                key={i}
+                                className="mx-8 flex items-center space-x-2 font-medium text-sm hover:opacity-90"
+                            >
+                                <span className="text-lg">
+                                    {w.severity === "high" && "🚨"}
+                                    {w.severity === "medium" && "⚠️"}
+                                    {w.severity === "low" && "ℹ️"}
+                                </span>
+                                <span>
+                                    {w.message}
+                                    <span className="ml-2 text-xs opacity-80">
+                                        ({w.severity.toUpperCase()})
+                                    </span>
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                    {/* gradient fade effect on edges */}
+                    <div className="absolute top-0 left-0 w-16 h-full bg-gradient-to-r from-red-600 to-transparent" />
+                    <div className="absolute top-0 right-0 w-16 h-full bg-gradient-to-l from-red-600 to-transparent" />
+                </div>
+            )}
+            <div className="flex h-screen bg-gray-50">
+                {/* Desktop Sidebar */}
+                <div className="hidden md:block">
+                    <Sidebar
+                        sidebarOpen={sidebarOpen}
+                        setSidebarOpen={setSidebarOpen}
+                        activeTab={activeTab}
+                        setActiveTab={handleTabChange}
+                        handlemainpage={handlemainpage}
+                    />
+                </div>
 
-            <Sidebar
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                handlemainpage={handlemainpage}
-            />
+                {/* Mobile Sidebar Overlay */}
+                {mobileMenuOpen && (
+                    <div className="fixed inset-0 z-50 md:hidden">
+                        <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}></div>
+                        <div className="mobile-sidebar relative bg-white w-64 h-full shadow-xl">
+                            <div className="flex items-center justify-between p-4 border-b">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                        <BookOpen className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className="font-bold text-xl text-gray-900 cursor-pointer" onClick={handlemainpage}>Bookbuddy</span>
+                                </div>
+                                <button
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <Sidebar
+                                sidebarOpen={true}
+                                setSidebarOpen={() => { }}
+                                activeTab={activeTab}
+                                setActiveTab={handleTabChange}
+                                handlemainpage={handlemainpage}
+                                isMobile={true}
+                            />
+                        </div>
+                    </div>
+                )}
 
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col overflow-hidden">
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Top Header */}
-                <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <h1 className="text-2xl font-bold text-gray-900 capitalize">
-                                {activeTab === 'addbook' ? 'Add Book' :
-                                    activeTab === 'books' ? 'My Books' :
-                                        activeTab === 'orders' ? 'Orders' : 'Overview'}
-                            </h1>
+                    {/* Top Header */}
+                    <header className="bg-white shadow-sm border-b border-gray-200 px-4 md:px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                {/* Mobile Menu Button */}
+                                <button
+                                    onClick={() => setMobileMenuOpen(true)}
+                                    className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                                >
+                                    <Menu className="h-5 w-5" />
+                                </button>
+
+                                <h1 className="text-xl md:text-2xl font-bold text-gray-900 capitalize">
+                                    {activeTab === 'addbook' ? 'Add Book' :
+                                        activeTab === 'books' ? 'My Books' :
+                                            activeTab === 'orders' ? 'Orders' : 'Overview'}
+                                </h1>
+                            </div>
+
+                            <div className="flex items-center space-x-2 md:space-x-4">
+                                {/* Search Bar - Hidden on small screens */}
+                                {(activeTab === 'books' || activeTab === 'overview') && (
+                                    <div className="relative hidden sm:block">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search books..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10 pr-4 py-2 w-48 md:w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                    </div>
+                                )}
+
+                                {/* User Profile Dropdown */}
+                                <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="flex items-center p-1 rounded-full hover:bg-gray-100 transition-colors">
+                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden">
+                                                {avatarUrl != null ? (
+                                                    <img
+                                                        className="w-full h-full object-cover"
+                                                        src={getImageSrc(avatarUrl)}
+                                                        alt="User Profile"
+                                                    />) : (
+                                                    <UserCircle className="w-full h-full object-cover" />
+                                                )}
+                                            </div>
+                                        </button>
+                                    </DropdownMenuTrigger>
+
+                                    <DropdownMenuContent align="end" className="w-48 mt-2">
+                                        <DropdownMenuLabel className="font-normal">
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">{user?.user_metadata?.full_name || 'User'}</p>
+                                                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                                            </div>
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="flex items-center space-x-2 cursor-pointer" onClick={handleprofile}>
+                                            <User className="h-4 w-4" />
+                                            <span>Profile</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="flex items-center space-x-2 text-red-600 cursor-pointer" onClick={handleSignOut}>
+                                            <LogOut className="h-4 w-4" />
+                                            <span>Log out</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </div>
 
-                        <div className="flex items-center space-x-4">
-                            {/* Search Bar */}
-                            {(activeTab === 'books' || activeTab === 'overview') && (
+                        {/* Mobile Search Bar - Show below header on small screens */}
+                        {(activeTab === 'books') && (
+                            <div className="mt-4 sm:hidden">
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                     <input
@@ -553,62 +723,21 @@ const Dashboard = () => {
                                         placeholder="Search books..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
-                            )}
+                            </div>
+                        )}
+                    </header>
 
-                            {/* User Profile */}
-                            <DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
-                                <DropdownMenuTrigger asChild>
-                                    {sidebarOpen ? (
-                                        <button className="flex items-center space-x-3 pt-0 p-2 rounded-lg  transition-colors">
-                                            <div className="w-10 h-10  rounded-full flex items-center justify-center">
-                                                <img
-                                                    className="w-10 h-10 rounded-full"
-                                                    src={getImageSrc(avatarUrl)}
-                                                    alt="User Profile"
-                                                />
-                                            </div>
-                                        </button>
-                                    ) : (
-                                        <button className="flex items-center space-x-3 p-2 rounded-lg  transition-colors">
-                                            <div className="w-10 h-10  rounded-full flex items-center justify-center">
-                                                <img
-                                                    className="w-10 h-10 rounded-full"
-                                                    src={getImageSrc(avatarUrl)}
-                                                    alt="User Profile"
-                                                />
-                                            </div>
-                                        </button>
-                                    )}
-
-                                </DropdownMenuTrigger>
-
-                                <DropdownMenuContent align="end" className="mr-5 p-2 mb-2">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="flex items-center space-x-2" onClick={handleprofile}>
-                                        <User className="h-4 w-4" />
-                                        <span>Profile</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="flex items-center space-x-2 text-red-600" onClick={handleSignOut}>
-                                        <LogOut className="h-4 w-4" />
-                                        <span>Log out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                </header>
-
-                {/* Main Content Area */}
-                <main className="flex-1 overflow-auto p-6">
-                    {renderContent()}
-                </main>
+                    {/* Main Content Area */}
+                    <main className="flex-1 overflow-auto p-4 md:p-6">
+                        {renderContent()}
+                    </main>
+                </div>
             </div>
         </div>
     );
 };
+
 export default Dashboard;
