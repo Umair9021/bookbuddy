@@ -37,7 +37,6 @@ export async function PUT(request, context) {
         _id: params.userId,
         name: data.name.trim(),
         email: data.email.trim().toLowerCase(),
-        username: data.username?.trim() || '',
         major: data.major || 'Science',
         collegeName: data.collegeName?.trim() || 'CTI College',
         address: data.address?.trim() || '',
@@ -66,7 +65,6 @@ export async function PUT(request, context) {
 
     if (data.name?.trim()) updateData.name = data.name.trim();
     if (data.email?.trim()) updateData.email = data.email.trim().toLowerCase();
-    if (data.username?.trim()) updateData.username = data.username.trim();
     if (data.major) updateData.major = data.major;
     if (data.collegeName?.trim()) updateData.collegeName = data.collegeName.trim();
     if (data.address?.trim()) updateData.address = data.address.trim();

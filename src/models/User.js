@@ -16,12 +16,6 @@ const userSchema = new mongoose.Schema({
   collegeName: { type: String, default: 'CTI College' },
   address: { type: String, default: '' },
   about: { type: String, default: '' },
-  username: { 
-    type: String, 
-    unique: true, 
-    sparse: true, 
-    required: false 
-  },
    is_read :{type: Boolean, default:false },
   isSuspended: { type: Boolean, default: false }
 }, {
