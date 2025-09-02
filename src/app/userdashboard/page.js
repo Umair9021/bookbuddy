@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client'
 import OverviewPage from '@/components/Dashboard/OverviewPage';
 import MyBook from '@/components/Dashboard/MyBook';
-import { Package, Search, Menu, X,UserCircle } from 'lucide-react';
+import { Package, Search, Menu, X, UserCircle } from 'lucide-react';
 import Sidebar from '@/components/Dashboard/Sidebar';
 import AddBook from '@/components/Dashboard/AddBook';
 import { useRouter } from 'next/navigation';
@@ -606,36 +606,58 @@ const Dashboard = () => {
                     />
                 </div>
 
-                {/* Mobile Sidebar Overlay */}
-                {mobileMenuOpen && (
-                    <div className="fixed inset-0 z-50 md:hidden">
-                        <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}></div>
-                        <div className="mobile-sidebar relative bg-white w-64 h-full shadow-xl">
-                            <div className="flex items-center justify-between p-4 border-b">
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                        <BookOpen className="h-5 w-5 text-white" />
-                                    </div>
-                                    <span className="font-bold text-xl text-gray-900 cursor-pointer" onClick={handlemainpage}>Bookbuddy</span>
+
+                {/* Mobile Sidebar - always mounted */}
+                <div className="fixed inset-0 z-50 md:hidden flex pointer-events-none">
+                    {/* Soft overlay covering the whole page */}
+                    <div
+                        className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300
+      ${mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                    ></div>
+
+                    {/* Sidebar */}
+                    <div
+                        className={`relative bg-white w-64 h-full shadow-2xl transform transition-transform duration-300 ease-in-out
+      ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"} pointer-events-auto`}
+                    >
+                        {/* Sidebar header */}
+                        <div className="flex items-center justify-between p-4 border-b">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                    <BookOpen className="h-5 w-5 text-white" />
                                 </div>
-                                <button
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                                <span
+                                    className="font-bold text-xl text-gray-900 cursor-pointer"
+                                    onClick={handlemainpage}
                                 >
-                                    <X className="h-5 w-5" />
-                                </button>
+                                    Bookbuddy
+                                </span>
                             </div>
-                            <Sidebar
-                                sidebarOpen={true}
-                                setSidebarOpen={() => { }}
-                                activeTab={activeTab}
-                                setActiveTab={handleTabChange}
-                                handlemainpage={handlemainpage}
-                                isMobile={true}
-                            />
+                            <button
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
                         </div>
+
+                        {/* Sidebar links */}
+                        <Sidebar
+                            sidebarOpen={true}
+                            setSidebarOpen={() => { }}
+                            activeTab={activeTab}
+                            setActiveTab={(tab) => {
+                                handleTabChange(tab);
+                                setMobileMenuOpen(false); // close sidebar after tab click
+                            }}
+                            handlemainpage={handlemainpage}
+                            isMobile={true}
+                        />
                     </div>
-                )}
+                </div>
+
+
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col overflow-hidden">

@@ -271,15 +271,15 @@ const BookSwap = () => {
                         Connect with fellow students to buy, sell, and exchange used textbooks at great prices
                     </p>
 
-                    <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-4 sm:space-x-4 mb-12 sm:mb-10 px-4">
-                        <Button className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-19 sm:ml-0 sm:w-auto"
+                    <div className="flex flex-col sm:flex-row  justify-center space-y-2 sm:space-y-4 sm:space-x-4 mb-12 sm:mb-10 px-4">
+                        <Button className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-17 sm:ml-0 sm:w-auto"
                             onClick={() => router.push('browse')}
                         >
                             Browse Book
                         </Button>
                         <Button
                             variant="outline"
-                            className="bg-gradient-to-br from-blue-500 to-blue-900 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-19 sm:ml-0 sm:w-auto"
+                            className="bg-gradient-to-br from-blue-500 to-blue-900 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-17 sm:ml-0 sm:w-auto"
                         >
                             Sell Your Books
                         </Button>
