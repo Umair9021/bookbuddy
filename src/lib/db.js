@@ -17,8 +17,14 @@ async function dbConnect() {
     return cached.conn;
   }
 
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then(mongoose => {
+   if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      ssl: true,                      // Enable SSL
+      tls: true,                      // Enable TLS
+      tlsAllowInvalidCertificates: false, // Do not allow invalid certs
+      serverSelectionTimeoutMS: 5000, // Fail fast if cannot connect
+      retryWrites: true,              // Retry writes (Atlas default)
+    }).then((mongoose) => {
       return mongoose;
     });
   }

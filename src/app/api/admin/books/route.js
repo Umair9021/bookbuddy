@@ -34,9 +34,10 @@ export async function GET(request) {
 
     return Response.json(books);
   } catch (error) {
-    console.error('Error fetching books:', error);
+     console.error('Error fetching books:', error.message, error.stack);
     return Response.json(
       { error: 'Internal Server Error' },
+      { error: error.message },
       { status: 500 }
     );
   }

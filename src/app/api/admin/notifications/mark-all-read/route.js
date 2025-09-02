@@ -26,9 +26,9 @@ export async function PUT() {
       message: `Marked ${totalUpdated} notifications as read`,
       details: {
         reports: results[0].modifiedCount,
-        users: results[2].modifiedCount,
-        books: results[3].modifiedCount,
-        contacts: results[4].modifiedCount
+        users: results[1].modifiedCount,
+        books: results[2].modifiedCount,
+        contacts: results[3].modifiedCount,
       }
     });
     

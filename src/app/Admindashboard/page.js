@@ -86,87 +86,168 @@ const AdminDashboard = () => {
     if (isMobile && mobileMenuOpen) {
       setMobileMenuOpen(false);
     }
-  }, [activeTab, isMobile, mobileMenuOpen,setMobileMenuOpen]);
+  }, [activeTab, isMobile, mobileMenuOpen]);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
+  
 
   // Admin verification effect
-  useEffect(() => {
-    const checkAdminAndGetUser = async () => {
-      try {
-        setIsVerifying(true);
+  // useEffect(() => {
+  //   const checkAdminAndGetUser = async () => {
+  //     try {
+  //       setIsVerifying(true);
         
-        const { data: { session } } = await supabase.auth.getSession();
-        const currentUser = session?.user ?? null;
+  //       const { data: { session } } = await supabase.auth.getSession();
+  //       const currentUser = session?.user ?? null;
 
-        if (!currentUser) {
-          setShouldRedirect('/auth/login');
-          return;
-        }
+  //       if (!currentUser) {
+  //         setShouldRedirect('/auth/login');
+  //         return;
+  //       }
 
-        if (currentUser.email !== ADMIN_EMAIL) {
-          setShouldRedirect('/');
-          return;
-        }
+  //       if (currentUser.email !== ADMIN_EMAIL) {
+  //         setShouldRedirect('/');
+  //         return;
+  //       }
 
-        const response = await fetch(`/api/users/${currentUser.id}`);
-        if (!response.ok) {
-          setShouldRedirect('/auth/login');
-          return;
-        }
+  //       const response = await fetch(`/api/users/${currentUser.id}`);
+  //       if (!response.ok) {
+  //         setShouldRedirect('/auth/login');
+  //         return;
+  //       }
 
-        const userData = await response.json();
-        if (userData.role !== 'admin' || userData.isSuspended) {
-          setShouldRedirect('/');
-          return;
-        }
+  //       const userData = await response.json();
+  //       if (userData.role !== 'admin' || userData.isSuspended) {
+  //         setShouldRedirect('/');
+  //         return;
+  //       }
 
-        // Admin verified
+  //       // Admin verified
+  //       setUser(currentUser);
+  //       if (currentUser?.user_metadata?.picture) {
+  //         setAvatarUrl(currentUser.user_metadata.picture);
+  //       }
+  //       setIsVerifying(false);
+  //     } catch (error) {
+  //       console.error('Admin check failed:', error);
+  //       setShouldRedirect('/auth/login');
+  //     }
+  //   };
+
+  //   checkAdminAndGetUser();
+  // }, []);
+  useEffect(() => {
+  let isMounted = true;
+
+  const checkAdminAndGetUser = async () => {
+    try {
+      setIsVerifying(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+
+      if (!currentUser) {
+        if (isMounted) setShouldRedirect('/auth/login');
+        return;
+      }
+
+      if (currentUser.email !== ADMIN_EMAIL) {
+        if (isMounted) setShouldRedirect('/');
+        return;
+      }
+
+      const response = await fetch(`/api/users/${currentUser.id}`);
+      if (!response.ok) {
+        if (isMounted) setShouldRedirect('/auth/login');
+        return;
+      }
+
+      const userData = await response.json();
+      if (userData.role !== 'admin' || userData.isSuspended) {
+        if (isMounted) setShouldRedirect('/');
+        return;
+      }
+
+      if (isMounted) {
         setUser(currentUser);
         if (currentUser?.user_metadata?.picture) {
           setAvatarUrl(currentUser.user_metadata.picture);
         }
         setIsVerifying(false);
-      } catch (error) {
-        console.error('Admin check failed:', error);
-        setShouldRedirect('/auth/login');
       }
-    };
+    } catch (error) {
+      console.error('Admin check failed:', error);
+      if (isMounted) setShouldRedirect('/auth/login');
+    }
+  };
 
-    checkAdminAndGetUser();
-  }, []);
+  checkAdminAndGetUser();
+
+  return () => {
+    isMounted = false; // cleanup
+  };
+}, []);
+
 
   // Separate useEffect for redirects
   useEffect(() => {
     if (shouldRedirect) {
       router.replace(shouldRedirect);
     }
-  }, [shouldRedirect, router]);
+  }, [shouldRedirect]);
 
   // Load all warnings and reports on component mount
-  useEffect(() => {
-    const loadWarningsAndReports = async () => {
-      try {
-        setLoading(true);
-        const [warningsData, reportsData] = await Promise.all([
-          fetchAllWarnings(),
-          fetchAllReports()
-        ]);
-        setWarnings(warningsData.warnings);
-        setReports(reportsData.reports || reportsData);
-      } catch (err) {
-        console.log(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const loadWarningsAndReports = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const [warningsData, reportsData] = await Promise.all([
+  //         fetchAllWarnings(),
+  //         fetchAllReports()
+  //       ]);
+  //       setWarnings(warningsData.warnings);
+  //       setReports(reportsData.reports || reportsData);
+  //     } catch (err) {
+  //       console.log(err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    loadWarningsAndReports();
-  }, []);
+  //   loadWarningsAndReports();
+  // }, []);
 
   // All your functions and logic here...
+  
+  useEffect(() => {
+  let isMounted = true;
+
+  const loadWarningsAndReports = async () => {
+    try {
+      if (isMounted) setLoading(true);
+
+      const [warningsData, reportsData] = await Promise.all([
+        fetchAllWarnings(),
+        fetchAllReports()
+      ]);
+
+      if (isMounted) {
+        setWarnings(warningsData.warnings);
+        setReports(reportsData.reports || reportsData);
+      }
+    } catch (err) {
+      console.log(err.message);
+    } finally {
+      if (isMounted) setLoading(false);
+    }
+  };
+
+  loadWarningsAndReports();
+
+  return () => {
+    isMounted = false; // cleanup
+  };
+}, []);
+
   const fetchAllData = async () => {
     setLoading(true);
     try {
@@ -193,6 +274,13 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+  const loadData = async () => {
+    await fetchAllData();
+  };
+  loadData();
+}, []);
 
   const fetchUsers = async () => {
     try {
