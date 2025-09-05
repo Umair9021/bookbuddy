@@ -66,9 +66,10 @@ const Dashboard = () => {
         title: '',
         price: '',
         description: '',
-        condition: 'New',
-        department: 'First Year',
-        status: 'Available',
+        year: '',
+        condition: '',
+        department: '',
+        status: '',
         images: [],
         thumbnailIndex: 0,
     });
@@ -248,7 +249,7 @@ const Dashboard = () => {
             alert('User not authticated');
             return;
         }
-        if (!bookForm.title || !bookForm.price || !bookForm.description || !bookForm.department || !bookForm.condition) {
+        if (!bookForm.title || !bookForm.price || !bookForm.description || !bookForm.department || !bookForm.year || !bookForm.condition) {
             alert('Please fill all required filed');
             return;
         }
@@ -262,6 +263,7 @@ const Dashboard = () => {
                 title: bookForm.title,
                 price: parseFloat(bookForm.price),
                 department: bookForm.department,
+                year: bookForm.year,
                 condition: bookForm.condition,
                 description: bookForm.description,
                 pictures,
@@ -286,9 +288,10 @@ const Dashboard = () => {
                 title: '',
                 price: '',
                 description: '',
-                condition: 'New',
-                department: 'First Year',
-                status: 'Available',
+                condition: '',
+                department: '',
+                status: '',
+                year: '',
                 images: [],
                 thumbnailIndex: 0,
             })
@@ -340,8 +343,9 @@ const Dashboard = () => {
                     title: '',
                     price: '',
                     description: '',
-                    condition: 'New',
-                    department: 'First Year',
+                    year: '',
+                    condition: '',
+                    department: '',
                     images: [],
                     thumbnailIndex: 0,
                 });
@@ -407,6 +411,7 @@ const Dashboard = () => {
             price: book.price,
             description: book.description,
             department: book.department,
+            year: book.year,
             condition: book.condition,
             status: book.status,
             images: existingImages,
@@ -415,15 +420,95 @@ const Dashboard = () => {
         setEditDialogOpen(true);
     };
 
-    const handleUnifiedImageUpload = async (event) => {
-        const files = Array.from(event.target.files);
+    // const handleUnifiedImageUpload = async (event) => {
+    //     const files = Array.from(event.target.files);
 
-        if (!files.length) {
-            console.log('No files selected');
+    //     if (!files.length) {
+    //         console.log('No files selected');
+    //         return;
+    //     }
+
+    //     if (bookForm.images.length + files.length > 3) {
+    //         alert('Maximum 3 images allowed');
+    //         return;
+    //     }
+
+    //     setUploadingImages(true);
+    //     const uploadedImages = [];
+
+    //     try {
+    //         for (const file of files) {
+
+    //             if (!file.type.startsWith('image/')) {
+    //                 throw new Error(`${file.name} is not an image file`);
+    //             }
+
+    //             const formData = new FormData();
+    //             formData.append('file', file);
+
+    //             const response = await fetch('/api/upload', {
+    //                 method: 'POST',
+    //                 body: formData,
+    //             });
+
+    //             if (!response.ok) {
+    //                 throw new Error(`Upload failed for ${file.name}: ${response.status}`);
+    //             }
+
+    //             const result = await response.json();
+    //             uploadedImages.push({
+    //                 file: file,
+    //                 url: result.url,
+    //                 publicId: result.public_id
+    //             });
+    //         }
+
+    //         handleFormChange('images', [...bookForm.images, ...uploadedImages]);
+
+    //     } catch (error) {
+    //         console.error('Upload error:', error);
+    //         alert(`Error uploading images: ${error.message}`);
+    //     } finally {
+    //         setUploadingImages(false);
+    //     }
+    // };
+
+    // Modified function to handle both regular uploads and cropped files
+
+
+    // Add this in your parent component to debug
+    useEffect(() => {
+        console.log('bookForm.images changed:', bookForm.images);
+        bookForm.images.forEach((img, index) => {
+            console.log(`Image ${index}:`, img);
+            if (img && !img.url && typeof img !== 'string') {
+                console.error(`Image ${index} has no URL:`, img);
+            }
+        });
+    }, [bookForm.images]);
+    // Modified function to handle both regular uploads and cropped files
+    const handleUnifiedImageUpload = async (eventOrFile, indexToReplace = null) => {
+        let files = [];
+
+        // Handle different input types
+        if (eventOrFile instanceof File) {
+            // Single file (from cropping)
+            files = [eventOrFile];
+        } else if (eventOrFile && eventOrFile.target && eventOrFile.target.files) {
+            // Event object (from file input)
+            files = Array.from(eventOrFile.target.files);
+        } else {
+            console.log('Invalid input to handleUnifiedImageUpload');
             return;
         }
 
-        if (bookForm.images.length + files.length > 3) {
+        if (!files.length) {
+            console.log('No files to upload');
+            return;
+        }
+
+        // Check image limit (only for new images, not replacements)
+        if (indexToReplace === null && bookForm.images.length + files.length > 3) {
             alert('Maximum 3 images allowed');
             return;
         }
@@ -433,7 +518,6 @@ const Dashboard = () => {
 
         try {
             for (const file of files) {
-
                 if (!file.type.startsWith('image/')) {
                     throw new Error(`${file.name} is not an image file`);
                 }
@@ -458,7 +542,18 @@ const Dashboard = () => {
                 });
             }
 
-            handleFormChange('images', [...bookForm.images, ...uploadedImages]);
+            // Update images based on whether we're replacing or adding
+            let newImages;
+            if (indexToReplace !== null && indexToReplace < bookForm.images.length) {
+                // Replace existing image at specific index
+                newImages = [...bookForm.images];
+                newImages[indexToReplace] = uploadedImages[0]; // Replace with first (and likely only) uploaded image
+            } else {
+                // Add new images
+                newImages = [...bookForm.images, ...uploadedImages];
+            }
+
+            handleFormChange('images', newImages);
 
         } catch (error) {
             console.error('Upload error:', error);
@@ -467,6 +562,8 @@ const Dashboard = () => {
             setUploadingImages(false);
         }
     };
+
+
 
 
     const handleSignOut = async () => {
@@ -524,6 +621,7 @@ const Dashboard = () => {
             case 'addbook':
                 return (
                     <AddBook
+                        setBookForm={setBookForm}
                         bookForm={bookForm}
                         handleFormChange={handleFormChange}
                         handleFileUpload={handleUnifiedImageUpload}

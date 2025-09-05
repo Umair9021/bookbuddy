@@ -87,9 +87,10 @@ export async function POST(request) {
     const newBook = await Book.create({
       title: data.title,
       price: parseFloat(data.price),
-      description: data.description || '',
-      department: data.category || 'First Year',
-      condition: data.condition || 'New',
+      description: data.description,
+      department: data.department,
+      year: data.year,
+      condition: data.condition,
       pictures: data.pictures || [],
       seller: data.sellerId,
       isSold: false

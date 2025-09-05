@@ -3,9 +3,14 @@ import mongoose from "mongoose";
 
 const bookSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  price: { type: Number, required: true,select: false, min: [0, 'Price cannot be negative'] },
+  price: { type: Number, required: true, select: false, min: [0, 'Price cannot be negative'] },
   description: { type: String, required: true },
   department: { type: String, required: true },
+  year: {
+    type: String,
+    required: true,
+     enum: ['First Year', 'Second Year', 'Third Year'],
+  },
   condition: { type: String, required: true },
   pictures: {
     type: [
@@ -20,7 +25,7 @@ const bookSchema = new mongoose.Schema({
     },
     required: [true, 'At least one picture is required'],
   },
-  is_read :{type: Boolean, default:false },
+  is_read: { type: Boolean, default: false },
   seller: {
     type: String,
     ref: 'User',

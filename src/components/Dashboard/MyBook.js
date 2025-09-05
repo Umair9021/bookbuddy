@@ -61,6 +61,7 @@ const MyBook = ({
                         <thead>
                             <tr className="border-b border-gray-200">
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Book</th>
+                                <th className="text-left py-3 px-4 font-medium text-gray-900">Year</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Department</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Price</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
@@ -72,6 +73,9 @@ const MyBook = ({
                                 <tr key={book._id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <td className="py-4 px-4">
                                         <div className="font-medium text-gray-900">{book.title}</div>
+                                    </td>
+                                    <td className="py-4 px-4">
+                                        <div className="font-small text-gray-900">{book.year}</div>
                                     </td>
                                     <td className="py-4 px-4">
                                         <div className="font-small text-gray-900">{book.department}</div>

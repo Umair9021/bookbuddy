@@ -15,39 +15,28 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import getImageSrc from '@/utils/getImageSrc';
 
-const navigation = [
-  { name: "All Books", href: "/books", current: false, filter: null },
-  { name: "First Year", href: "/books", current: false, filter: "First Year" },
-  { name: "Second Year", href: "/books", current: false, filter: "Second Year" },
-  { name: "Third Year", href: "/books", current: false, filter: "Third Year" },
-];
-
 const BookSwapInner = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYear, setSelectedYear] = useState('Year');
-  const [selecteddepartment, setSelecteddepartment] = useState('department');
-  const [selectedCondition, setSelectedCondition] = useState('Condition');
+  const [selectedYear, setSelectedYear] = useState('All');
+  const [selecteddepartment, setSelecteddepartment] = useState('All');
+  const [selectedCondition, setSelectedCondition] = useState('All');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const ITEMS_PER_PAGE = 12;
   const searchParams = useSearchParams();
-  const filter = searchParams.get("filter");
   const router = useRouter();
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-  // Dropdown options
   const yearOptions = ['All', 'First Year', 'Second Year', 'Third Year'];
-  const conditionOptions = ['New', 'Like New', 'Good', 'Fair'];
-  const departmentOptions = ['Computer Science', 'Electrical Eng', 'Mechanical Eng', 'Applied Physics'];
+  const conditionOptions = ['All','New', 'Like New', 'Good', 'Fair'];
+  const departmentOptions = ['All','General','Mechanical', 'Auto & Diesel', 'Civil','Quantity Survey','ICT'];
 
-  // Function to get condition badge styling
   const getConditionBadgeStyle = (condition) => {
     switch (condition?.toLowerCase()) {
       case 'available':
@@ -69,7 +58,6 @@ const BookSwapInner = () => {
     }
   };
 
-  // Handle book card click
   const handleBookClick = (e, book) => {
     e.preventDefault();
     e.stopPropagation();
@@ -78,35 +66,49 @@ const BookSwapInner = () => {
     setIsModalOpen(true);
   };
 
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedBook(null);
     setSelectedImageIndex(0);
   };
 
-  // Handle thumbnail click
-  const handleThumbnailClick = (index) => {
-    setSelectedImageIndex(index);
-  };
 
-  // Initialize dropdown states based on URL filter parameter
+  // Initialize filters from URL parameters
   useEffect(() => {
-    if (filter && yearOptions.includes(filter)) {
-      setSelectedYear(filter);
-    }
-  }, [filter]);
+    const filterParam = searchParams.get("filter");
+    const yearParam = searchParams.get("year");
+    const departmentParam = searchParams.get("department");
+    const conditionParam = searchParams.get("condition");
+    const searchParam = searchParams.get("search");
 
+    if (filterParam && yearOptions.includes(filterParam)) {
+      setSelectedYear(filterParam);
+    }
+    if (yearParam && yearOptions.includes(yearParam)) {
+      setSelectedYear(yearParam);
+    }
+    if (departmentParam && departmentOptions.includes(departmentParam)) {
+      setSelecteddepartment(departmentParam);
+    }
+    if (conditionParam && conditionOptions.includes(conditionParam)) {
+      setSelectedCondition(conditionParam);
+    }
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+  }, []);
+
+  // Fetch all books once on component mount
   useEffect(() => {
     const fetchBooks = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const filterParam = filter ? `?filter=${encodeURIComponent(filter)}` : "";
-        const response = await fetch(`/api/books${filterParam}`);
+        const response = await fetch('/api/books?select=all');
         if (response.ok) {
           const data = await response.json();
+          console.log('Fetched Books: ', data);
           setBooks(Array.isArray(data) ? data : []);
         } else {
           throw new Error(`Failed to fetch books: ${response.status} ${response.statusText}`);
@@ -119,9 +121,9 @@ const BookSwapInner = () => {
       }
     };
     fetchBooks();
-  }, [filter]);
+  }, []);
 
-  // Apply all filters to the books
+  // Apply all filters to the books (frontend filtering)
   const getFilteredBooks = () => {
     let filtered = books;
 
@@ -129,36 +131,40 @@ const BookSwapInner = () => {
       (book) => book.status !== "sold" && !book.isHidden
     );
 
-    if (filter) {
-      filtered = filtered.filter((book) => {
-        if (filter === "First Year") return book.department === "First Year";
-        if (filter === "Second Year") return book.department === "Second Year";
-        if (filter === "Third Year") return book.department === "Third Year";
-        return true;
+    if (selectedYear !== 'All') {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(book => {
+        const yearMatch = book.year === selectedYear;
+        return yearMatch;
       });
     }
 
-    if (selectedYear !== 'Year' && selectedYear !== 'All') {
-      filtered = filtered.filter(book => book.department === selectedYear);
+    if (selecteddepartment !== 'All') {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(book => {
+        const deptMatch = book.department === selecteddepartment ;
+        return deptMatch;
+      });
     }
 
-    if (selecteddepartment !== 'department') {
-      filtered = filtered.filter(book => book.subject === selecteddepartment);
-    }
-
-    if (selectedCondition !== 'Condition') {
-      filtered = filtered.filter(book => book.condition === selectedCondition);
+    if (selectedCondition !== 'All') {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(book => {
+        const conditionMatch = book.condition === selectedCondition;
+        return conditionMatch;
+      });
     }
 
     if (searchQuery.trim()) {
+      const beforeCount = filtered.length;
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(book =>
         book.title?.toLowerCase().includes(query) ||
         book.author?.toLowerCase().includes(query) ||
-        book.subject?.toLowerCase().includes(query)
+        book.subject?.toLowerCase().includes(query) ||
+        book.department?.toLowerCase().includes(query)
       );
     }
-
     return filtered;
   };
 
@@ -168,6 +174,19 @@ const BookSwapInner = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentBooks = filteredBooks.slice(startIndex, endIndex);
+
+  const updateUrlParams = () => {
+    const params = new URLSearchParams();
+    
+    if (selectedYear !== 'All') params.set("year", selectedYear);
+    if (selecteddepartment !== 'All') params.set("department", selecteddepartment);
+    if (selectedCondition !== 'All') params.set("condition", selectedCondition);
+    if (searchQuery.trim()) params.set("search", searchQuery);
+    params.set("page", "1");
+
+    const currentPath = window.location.pathname;
+    router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+  };
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -215,17 +234,7 @@ const BookSwapInner = () => {
   };
 
   const handleSearch = () => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
-
-    if (selectedYear !== 'Year' && selectedYear !== 'All') {
-      params.set("filter", selectedYear);
-    } else {
-      params.delete("filter");
-    }
-
-    const currentPath = window.location.pathname;
-    router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+    updateUrlParams();
   };
 
   const handleKeyPress = (e) => {
@@ -236,17 +245,63 @@ const BookSwapInner = () => {
 
   const handleYearChange = (year) => {
     setSelectedYear(year);
-    const params = new URLSearchParams(searchParams);
-    params.set("page", "1");
+    // Update URL params after state change
+    setTimeout(() => {
+      const params = new URLSearchParams();
+      if (year !== 'All') params.set("year", year);
+      if (selecteddepartment !== 'All') params.set("department", selecteddepartment);
+      if (selectedCondition !== 'All') params.set("condition", selectedCondition);
+      if (searchQuery.trim()) params.set("search", searchQuery);
+      params.set("page", "1");
 
-    if (year !== 'Year' && year !== 'All') {
-      params.set("filter", year);
-    } else {
-      params.delete("filter");
-    }
+      const currentPath = window.location.pathname;
+      router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+    }, 0);
+  };
 
+  const handleDepartmentChange = (department) => {
+    setSelecteddepartment(department);
+    // Update URL params after state change
+    setTimeout(() => {
+      const params = new URLSearchParams();
+      if (selectedYear !== 'All') params.set("year", selectedYear);
+      if (department !== 'All') params.set("department", department);
+      if (selectedCondition !== 'All') params.set("condition", selectedCondition);
+      if (searchQuery.trim()) params.set("search", searchQuery);
+      params.set("page", "1");
+
+      const currentPath = window.location.pathname;
+      router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+    }, 0);
+  };
+
+  const handleConditionChange = (condition) => {
+    setSelectedCondition(condition);
+    // Update URL params after state change
+    setTimeout(() => {
+      const params = new URLSearchParams();
+      if (selectedYear !== 'All') params.set("year", selectedYear);
+      if (selecteddepartment !== 'All') params.set("department", selecteddepartment);
+      if (condition !== 'All') params.set("condition", condition);
+      if (searchQuery.trim()) params.set("search", searchQuery);
+      params.set("page", "1");
+
+      const currentPath = window.location.pathname;
+      router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+    }, 0);
+  };
+
+  const yearDisplayText = selectedYear === 'All' ? 'Year' : selectedYear;
+const departmentDisplayText = selecteddepartment === 'All' ? 'Department' : selecteddepartment;
+const conditionDisplayText = selectedCondition === 'All' ? 'Condition' : selectedCondition;
+
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSelectedYear('All');
+    setSelecteddepartment('All');
+    setSelectedCondition('All');
     const currentPath = window.location.pathname;
-    router.push(`${currentPath}?${params.toString()}`, { scroll: false });
+    router.push(currentPath, { scroll: false });
   };
 
   if (loading) {
@@ -275,6 +330,7 @@ const BookSwapInner = () => {
     );
   }
 
+ const hasActiveFilters = selectedYear !== 'All' || selecteddepartment !== 'All' || selectedCondition !== 'All' || searchQuery.trim();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -283,8 +339,9 @@ const BookSwapInner = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-slate-900 text-center mb-8">Browse Books</h2>
+        
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8 sm:items-end items-stretch">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:items-end items-stretch">
           <div className="flex-1">
             <Input
               type="text"
@@ -303,7 +360,7 @@ const BookSwapInner = () => {
                   variant="outline"
                   className="h-10 px-4 border-gray-300 min-w-[100px] justify-between flex-1 sm:flex-auto sm:min-w-[100px]"
                 >
-                  {selectedYear}
+                  {yearDisplayText}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -320,14 +377,14 @@ const BookSwapInner = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* department Dropdown */}
+            {/* Department Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   className="h-10 px-4 border-gray-300 min-w-[120px] justify-between flex-1 sm:flex-auto sm:min-w-[120px]"
                 >
-                  {selecteddepartment}
+                  {departmentDisplayText}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -335,7 +392,7 @@ const BookSwapInner = () => {
                 {departmentOptions.map((department) => (
                   <DropdownMenuItem
                     key={department}
-                    onClick={() => setSelecteddepartment(department)}
+                    onClick={() => handleDepartmentChange(department)}
                     className="cursor-pointer"
                   >
                     {department}
@@ -351,7 +408,7 @@ const BookSwapInner = () => {
                   variant="outline"
                   className="h-10 px-4 border-gray-300 min-w-[100px] justify-between flex-1 sm:flex-auto sm:min-w-[100px]"
                 >
-                  {selectedCondition}
+                  {conditionDisplayText}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -359,7 +416,7 @@ const BookSwapInner = () => {
                 {conditionOptions.map((condition) => (
                   <DropdownMenuItem
                     key={condition}
-                    onClick={() => setSelectedCondition(condition)}
+                    onClick={() => handleConditionChange(condition)}
                     className="cursor-pointer"
                   >
                     {condition}
@@ -368,13 +425,29 @@ const BookSwapInner = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
         </div>
+
+        {/* Clear Filters Button */}
+        {hasActiveFilters && (
+          <div className="mb-6 flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Showing {filteredBooks.length} of {books.filter(book => book.status !== "sold" && !book.isHidden).length} books
+            </div>
+            <Button
+              variant="ghost"
+              onClick={clearAllFilters}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Clear all filters
+            </Button>
+          </div>
+        )}
+
         {/* Books Grid */}
         {filteredBooks.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {searchQuery || selectedYear !== 'Year' || selecteddepartment !== 'department' || selectedCondition !== 'Condition'
+              {hasActiveFilters
                 ? 'No books found matching your criteria.'
                 : 'No books found.'}
             </p>

@@ -21,6 +21,8 @@ const Sidebar = ({
         { id: 'addbook', label: 'Add Book', icon: BookPlus },
         { id: 'books', label: 'My Books', icon: BookOpen },
     ];
+
+    
     return (
          <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white shadow-lg h-full transition-all duration-300 flex flex-col`}>
                 {/* Sidebar Header */}

@@ -22,7 +22,8 @@ import { useRouter } from 'next/navigation';
 import BookDetailsModal from '@/components/BookDetailsModal';
 
 const BookSwap = () => {
-    const [activeYear, setActiveYear] = useState('first');
+    const [activeYear, setActiveYear] = useState('First Year');
+    const [allBooks, setAllBooks] = useState([]);
     const [stats, setStats] = useState({
         booksAvailable: 0,
         activeStudents: 0,
@@ -61,13 +62,13 @@ const BookSwap = () => {
         },
     ];
 
-    // Variants for parent and children
+
     const container = {
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.25, // delay between each card
+                staggerChildren: 0.25,
             },
         },
     };
@@ -88,8 +89,9 @@ const BookSwap = () => {
     }, [router])
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchStatsAndBooks = async () => {
             try {
+               
                 const booksRes = await fetch('/api/books');
                 const booksData = await booksRes.json();
 
@@ -98,6 +100,9 @@ const BookSwap = () => {
 
                 const availableBooks = Array.isArray(booksData) ? booksData.filter(book => book.status !== 'Sold' && !book.isHidden) : [];
 
+                
+                setAllBooks(availableBooks);
+                
                 setStats({
                     booksAvailable: availableBooks.length,
                     activeStudents: Array.isArray(usersData) ? usersData.length : 0,
@@ -108,7 +113,7 @@ const BookSwap = () => {
                 console.error("Failed to fetch stats:", err);
             }
         };
-        fetchStats();
+        fetchStatsAndBooks();
         const handleHashNavigation = () => {
             if (window.location.hash === '#how-it-works-section') {
                 setTimeout(() => {
@@ -155,23 +160,16 @@ const BookSwap = () => {
     };
 
     const YearCarousel = ({ title, filter }) => {
-        const [filteredbook, setfilteredbooks] = useState([]);
-
-        useEffect(() => {
-            const fetchBooks = async () => {
-                try {
-                    const res = await fetch(`/api/books?filter=${filter}`);
-                    const data = await res.json();
-                    const availableBooks = Array.isArray(data)
-                        ? data.filter(book => book.status !== 'Sold' && !book.isHidden)
-                        : [];
-                    setfilteredbooks(availableBooks.slice(0, 5));
-                } catch (err) {
-                    console.error("Failed to fetch books:", err);
-                }
+        const filteredBooks = allBooks.filter(book => {
+            const yearMapping = {
+                'First Year': 'First Year',
+                'Second Year': 'Second Year', 
+                'Third Year': 'Third Year'
             };
-            fetchBooks();
-        }, [filter]);
+            
+            const expectedYear = yearMapping[filter] || filter;
+            return book.year === expectedYear;
+        }).slice(0, 5);
 
         return (
             <div className="w-full py-4 sm:py-5">
@@ -179,7 +177,7 @@ const BookSwap = () => {
                     <div className="w-full max-w-6xl mx-auto bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl shadow-sm p-2">
                         <Carousel className="w-full">
                             <CarouselContent className="-ml-1">
-                                {filteredbook.map((book, idx) => (
+                                {filteredBooks.map((book, idx) => (
                                     <CarouselItem
                                         key={book._id || idx}
                                         className="pl-1 basis-[85%] xs:basis-3/4 sm:basis-1/2 md:basis-1/2 lg:basis-1/3"
@@ -195,7 +193,7 @@ const BookSwap = () => {
                                                         alt={book.title}
                                                         className="w-full h-72 sm:h-85 object-cover rounded"
                                                     />
-                                                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-2 rounded-b">
+                                                    <div className="absolute bottom-0 left-[-11] right-0 bg-black/50 text-white p-2 pl-5 w-72 sm:w-92.5 rounded-b">
                                                         <p className="text-xs sm:text-sm font-semibold truncate">{book.title}</p>
                                                         <p className="text-xs opacity-80">${book.price}</p>
                                                     </div>
@@ -416,9 +414,9 @@ const BookSwap = () => {
                         <div className="flex justify-center mb-3 sm:mb-0 overflow-x-auto sm:overflow-visible scrollbar-hide">
                             <TabsList className="flex gap-1 sm:gap-2 bg-white/20 backdrop-blur-md rounded-full shadow-lg p-1 mx-auto min-w-max">
                                 {[
-                                    { label: "First Year", value: "first" },
-                                    { label: "Second Year", value: "second" },
-                                    { label: "Third Year", value: "third" },
+                                    { label: "First Year", value: "First Year" },
+                                    { label: "Second Year", value: "Second Year" },
+                                    { label: "Third Year", value: "Third Year" },
                                 ].map(({ label, value }) => (
                                     <TabsTrigger
                                         key={value}
@@ -435,41 +433,15 @@ const BookSwap = () => {
                         {/* Tabs content with animation */}
                         <div className="relative">
                             <AnimatePresence mode="wait">
-                                {activeYear === "first" && (
-                                    <motion.div
-                                        key="first"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.4 }}
-                                    >
-                                        <YearCarousel title="First Year Books" filter="First Year" />
-                                    </motion.div>
-                                )}
-
-                                {activeYear === "second" && (
-                                    <motion.div
-                                        key="second"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.4 }}
-                                    >
-                                        <YearCarousel title="Second Year Books" filter="Second Year" />
-                                    </motion.div>
-                                )}
-
-                                {activeYear === "third" && (
-                                    <motion.div
-                                        key="third"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -20 }}
-                                        transition={{ duration: 0.4 }}
-                                    >
-                                        <YearCarousel title="Third Year Books" filter="Third Year" />
-                                    </motion.div>
-                                )}
+                                <motion.div
+                                    key={activeYear}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.4 }}
+                                >
+                                    <YearCarousel title={`${activeYear} Books`} filter={activeYear} />
+                                </motion.div>
                             </AnimatePresence>
                         </div>
                     </Tabs>
