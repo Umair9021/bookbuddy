@@ -2299,77 +2299,117 @@ const ChatBoard = () => {
 
 
   // Update your initializeAbly function
-  useEffect(() => {
-    const initializeAbly = async () => {
-      if (isAblyConnecting || ablyClient) return;
+  // useEffect(() => {
+  //   const initializeAbly = async () => {
+  //     if (isAblyConnecting || ablyClient) return;
 
-      setIsAblyConnecting(true);
-      setAblyError(null);
+  //     setIsAblyConnecting(true);
+  //     setAblyError(null);
 
-      try {
-        console.log('Initializing Ably connection...');
+  //     try {
+  //       console.log('Initializing Ably connection...');
 
-        const Ably = (await import('ably')).default;
+  //       const Ably = (await import('ably')).default;
 
-        // Generate a consistent clientId
-        const clientId = `user-${currentUser?.id || 'anonymous'}-${Date.now()}`;
+  //       // Generate a consistent clientId
+  //       const clientId = `user-${currentUser?.id || 'anonymous'}-${Date.now()}`;
 
-        // Use authUrl with clientId parameter
-        const client = new Ably.Realtime({
-          authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
-          autoConnect: true,
-          clientId: clientId, // Use the same clientId here
-          log: { level: 2 },
-          closeOnUnload: false,
-          disconnectedRetryTimeout: 1000,
-        });
+  //       // Use authUrl with clientId parameter
+  //       const client = new Ably.Realtime({
+  //         authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
+  //         autoConnect: true,
+  //         clientId: clientId, // Use the same clientId here
+  //         log: { level: 2 },
+  //         closeOnUnload: false,
+  //         disconnectedRetryTimeout: 1000,
+  //       });
 
-        // Add connection event listeners
-        client.connection.on('connecting', () => {
-          console.log('Ably connecting...');
-          setAblyError('Connecting to chat service...');
-        });
+  //       // Add connection event listeners
+  //       client.connection.on('connecting', () => {
+  //         console.log('Ably connecting...');
+  //         setAblyError('Connecting to chat service...');
+  //       });
 
-        client.connection.on('connected', () => {
-          console.log('Ably connected successfully');
-          setAblyError(null);
-          setIsAblyConnecting(false);
-        });
+  //       client.connection.on('connected', () => {
+  //         console.log('Ably connected successfully');
+  //         setAblyError(null);
+  //         setIsAblyConnecting(false);
+  //       });
 
-        client.connection.on('disconnected', () => {
-          console.log('Ably disconnected');
-          setAblyError('Disconnected from chat service');
-        });
+  //       client.connection.on('disconnected', () => {
+  //         console.log('Ably disconnected');
+  //         setAblyError('Disconnected from chat service');
+  //       });
 
-        client.connection.on('suspended', () => {
-          console.log('Ably connection suspended');
-          setAblyError('Connection suspended. Reconnecting...');
-        });
+  //       client.connection.on('suspended', () => {
+  //         console.log('Ably connection suspended');
+  //         setAblyError('Connection suspended. Reconnecting...');
+  //       });
 
-        client.connection.on('failed', (error) => {
-          console.error('Ably connection failed:', error);
-          setAblyError('Connection failed: ' + error.message);
-          setIsAblyConnecting(false);
-        });
+  //       client.connection.on('failed', (error) => {
+  //         console.error('Ably connection failed:', error);
+  //         setAblyError('Connection failed: ' + error.message);
+  //         setIsAblyConnecting(false);
+  //       });
 
-        client.connection.on('closed', () => {
-          console.log('Ably connection closed');
-          setAblyError('Connection closed');
-          setIsAblyConnecting(false);
-        });
+  //       client.connection.on('closed', () => {
+  //         console.log('Ably connection closed');
+  //         setAblyError('Connection closed');
+  //         setIsAblyConnecting(false);
+  //       });
 
-        setAblyClient(client);
+  //       setAblyClient(client);
 
-      } catch (error) {
-        console.error('Error initializing Ably:', error);
-        setAblyError('Failed to initialize chat: ' + error.message);
-        setIsAblyConnecting(false);
-      }
-    };
-    if (isOpen && !ablyClient && !isAblyConnecting) {
-      initializeAbly();
+  //     } catch (error) {
+  //       console.error('Error initializing Ably:', error);
+  //       setAblyError('Failed to initialize chat: ' + error.message);
+  //       setIsAblyConnecting(false);
+  //     }
+  //   };
+  //   if (isOpen && !ablyClient && !isAblyConnecting) {
+  //     initializeAbly();
+  //   }
+  // }, [isOpen, ablyClient, isAblyConnecting, currentUser]);
+
+// In component body
+
+// Stable clientId
+const [clientId] = useState(() => `user-${currentUser?.id || 'anonymous'}`);
+
+// Initialize Ably client once currentUser is ready
+useEffect(() => {
+  if (!currentUser || ablyClient) return;
+
+  const initializeAbly = async () => {
+    try {
+      const Ably = (await import('ably')).default;
+
+      const client = new Ably.Realtime({
+        authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
+        autoConnect: true,
+        clientId: clientId,
+        log: { level: 2 },
+        closeOnUnload: false,
+        disconnectedRetryTimeout: 1000,
+      });
+
+      client.connection.on('connecting', () => setAblyError('Connecting to chat service...'));
+      client.connection.on('connected', () => setAblyError(null));
+      client.connection.on('disconnected', () => setAblyError('Disconnected from chat service'));
+      client.connection.on('suspended', () => setAblyError('Connection suspended. Reconnecting...'));
+      client.connection.on('failed', (err) => setAblyError('Connection failed: ' + err.message));
+      client.connection.on('closed', () => setAblyError('Connection closed'));
+
+      setAblyClient(client);
+
+    } catch (err) {
+      console.error('Error initializing Ably:', err);
+      setAblyError('Failed to initialize chat: ' + err.message);
     }
-  }, [isOpen, ablyClient, isAblyConnecting, currentUser]);
+  };
+
+  initializeAbly();
+}, [currentUser, ablyClient, clientId]);
 
 
   // Get chat context
@@ -2571,72 +2611,133 @@ const ChatBoard = () => {
 
   // Setup Ably channel when conversation is selected
 
-  const setupAblyChannel = (conversationId) => {
-    // If we're already setting up or using this channel, skip
-    if (currentChannelId === conversationId && ablyChannel) {
-      console.log('Already using this channel, skipping setup');
-      return;
-    }
+  // const setupAblyChannel = (conversationId) => {
+  //   // If we're already setting up or using this channel, skip
+  //   if (currentChannelId === conversationId && ablyChannel) {
+  //     console.log('Already using this channel, skipping setup');
+  //     return;
+  //   }
 
-    if (!ablyClient || ablyClient.connection.state !== 'connected') {
-      console.log('Ably client not ready, delaying channel setup');
-      setAblyError('Connecting to chat service...');
+  //   if (!ablyClient || ablyClient.connection.state !== 'connected') {
+  //     console.log('Ably client not ready, delaying channel setup');
+  //     setAblyError('Connecting to chat service...');
 
-      // Retry after connection is established
-      const checkConnection = () => {
-        if (ablyClient && ablyClient.connection.state === 'connected') {
-          setupAblyChannel(conversationId);
-        } else if (ablyClient && ablyClient.connection.state === 'failed') {
-          setAblyError('Connection failed. Please refresh the page.');
-        } else {
-          setTimeout(checkConnection, 500);
-        }
-      };
-      setTimeout(checkConnection, 500);
-      return;
-    }
+  //     // Retry after connection is established
+  //     const checkConnection = () => {
+  //       if (ablyClient && ablyClient.connection.state === 'connected') {
+  //         setupAblyChannel(conversationId);
+  //       } else if (ablyClient && ablyClient.connection.state === 'failed') {
+  //         setAblyError('Connection failed. Please refresh the page.');
+  //       } else {
+  //         setTimeout(checkConnection, 500);
+  //       }
+  //     };
+  //     setTimeout(checkConnection, 500);
+  //     return;
+  //   }
 
-    try {
-      // Unsubscribe from previous channel if it's different
-      if (ablyChannel && currentChannelId !== conversationId) {
-        try {
-          ablyChannel.unsubscribe();
-          ablyChannel.detach();
-          console.log('Detached from previous channel:', currentChannelId);
-        } catch (error) {
-          console.warn('Error detaching from previous channel:', error);
-        }
+  //   try {
+  //     // Unsubscribe from previous channel if it's different
+  //     if (ablyChannel && currentChannelId !== conversationId) {
+  //       try {
+  //         ablyChannel.unsubscribe();
+  //         ablyChannel.detach();
+  //         console.log('Detached from previous channel:', currentChannelId);
+  //       } catch (error) {
+  //         console.warn('Error detaching from previous channel:', error);
+  //       }
+  //     }
+
+  //     const channel = ablyClient.channels.get(`chat-${conversationId}`);
+  //     setCurrentChannelId(conversationId);
+
+  //     // Add channel event listeners
+  //     channel.on('attached', () => {
+  //       console.log('Channel attached successfully:', conversationId);
+  //       setAblyError(null);
+  //     });
+
+  //     channel.on('failed', (error) => {
+  //       console.error('Channel failed:', error);
+  //       setAblyError('Failed to join chat channel');
+  //     });
+
+  //     channel.on('detached', () => {
+  //       console.log('Channel detached:', conversationId);
+  //     });
+
+  //     channel.on('suspended', () => {
+  //       console.log('Channel suspended:', conversationId);
+  //       setAblyError('Channel connection suspended');
+  //     });
+
+  //     // Subscribe to messages
+  //     channel.subscribe("message", (message) => {
+  //       const newMessage = message.data;
+
+  //       if (newMessage.senderId !== currentUser.id) {
+  //         setMessages((prev) => [...prev, {
+  //           _id: newMessage._id || `ably-${Date.now()}`,
+  //           conversationId: newMessage.conversationId,
+  //           content: newMessage.content,
+  //           messageType: newMessage.messageType || 'text',
+  //           createdAt: newMessage.createdAt || new Date().toISOString(),
+  //           senderId: {
+  //             _id: newMessage.senderId,
+  //             name: newMessage.senderName || 'Unknown',
+  //             dp: newMessage.senderDp || ''
+  //           }
+  //         }]);
+  //       }
+  //     });
+
+  //     // Attach to the channel
+  //     channel.attach((err) => {
+  //       if (err) {
+  //         console.error('Failed to attach to channel:', err);
+  //         setAblyError('Failed to join chat');
+  //       } else {
+  //         console.log('Successfully attached to channel');
+  //       }
+  //     });
+
+  //     setAblyChannel(channel);
+
+  //   } catch (error) {
+  //     console.error('Error setting up Ably channel:', error);
+  //     setAblyError('Failed to set up chat channel');
+  //   }
+  // };
+
+  // Setup Ably channel whenever ablyClient or selectedConversation changes
+useEffect(() => {
+  if (!ablyClient || !selectedConversation) return;
+
+  const conversationId = selectedConversation._id;
+
+  const setupChannel = async () => {
+    // Detach previous channel if exists
+    if (ablyChannel) {
+      try {
+        ablyChannel.unsubscribe();
+        await ablyChannel.detach();
+      } catch (err) {
+        console.warn('Error detaching previous channel:', err);
       }
+    }
 
-      const channel = ablyClient.channels.get(`chat-${conversationId}`);
-      setCurrentChannelId(conversationId);
+    const channel = ablyClient.channels.get(`chat-${conversationId}`);
 
-      // Add channel event listeners
-      channel.on('attached', () => {
-        console.log('Channel attached successfully:', conversationId);
-        setAblyError(null);
-      });
+    channel.on('attached', () => setAblyError(null));
+    channel.on('failed', () => setAblyError('Failed to join chat channel'));
+    channel.on('suspended', () => setAblyError('Channel connection suspended'));
 
-      channel.on('failed', (error) => {
-        console.error('Channel failed:', error);
-        setAblyError('Failed to join chat channel');
-      });
-
-      channel.on('detached', () => {
-        console.log('Channel detached:', conversationId);
-      });
-
-      channel.on('suspended', () => {
-        console.log('Channel suspended:', conversationId);
-        setAblyError('Channel connection suspended');
-      });
-
-      // Subscribe to messages
-      channel.subscribe("message", (message) => {
-        const newMessage = message.data;
-
-        if (newMessage.senderId !== currentUser.id) {
-          setMessages((prev) => [...prev, {
+    channel.subscribe('message', (msg) => {
+      const newMessage = msg.data;
+      if (newMessage.senderId !== currentUser.id) {
+        setMessages((prev) => [
+          ...prev,
+          {
             _id: newMessage._id || `ably-${Date.now()}`,
             conversationId: newMessage.conversationId,
             content: newMessage.content,
@@ -2645,29 +2746,30 @@ const ChatBoard = () => {
             senderId: {
               _id: newMessage.senderId,
               name: newMessage.senderName || 'Unknown',
-              dp: newMessage.senderDp || ''
-            }
-          }]);
-        }
-      });
+              dp: newMessage.senderDp || '',
+            },
+          },
+        ]);
+      }
+    });
 
-      // Attach to the channel
-      channel.attach((err) => {
-        if (err) {
-          console.error('Failed to attach to channel:', err);
-          setAblyError('Failed to join chat');
-        } else {
-          console.log('Successfully attached to channel');
-        }
-      });
+    channel.attach((err) => {
+      if (err) setAblyError('Failed to join chat');
+    });
 
-      setAblyChannel(channel);
-
-    } catch (error) {
-      console.error('Error setting up Ably channel:', error);
-      setAblyError('Failed to set up chat channel');
-    }
+    setAblyChannel(channel);
+    setCurrentChannelId(conversationId);
   };
+
+  if (ablyClient.connection.state === 'connected') {
+    setupChannel();
+  } else {
+    const onConnect = () => setupChannel();
+    ablyClient.connection.once('connected', onConnect);
+    return () => ablyClient.connection.off('connected', onConnect);
+  }
+}, [ablyClient, selectedConversation]);
+
 
   //  useEffect to set the initial view
   useEffect(() => {
@@ -2679,28 +2781,43 @@ const ChatBoard = () => {
   }, [isOpen, autoOpenConversation]);
 
   // Update the cleanup useEffect
+  // useEffect(() => {
+  //   return () => {
+  //     // Only cleanup when component truly unmounts
+  //     if (ablyChannel) {
+  //       try {
+  //         // Check channel state before trying to detach
+  //         if (ablyChannel.state === 'attached' || ablyChannel.state === 'attaching') {
+  //           ablyChannel.unsubscribe();
+  //           ablyChannel.detach((err) => {
+  //             if (err) {
+  //               console.warn('Error detaching channel:', err);
+  //             } else {
+  //               console.log('Channel detached successfully');
+  //             }
+  //           });
+  //         }
+  //       } catch (error) {
+  //         console.warn('Error cleaning up channel:', error);
+  //       }
+  //     }
+  //   };
+  // }, [ablyChannel]);
+
   useEffect(() => {
-    return () => {
-      // Only cleanup when component truly unmounts
-      if (ablyChannel) {
-        try {
-          // Check channel state before trying to detach
-          if (ablyChannel.state === 'attached' || ablyChannel.state === 'attaching') {
-            ablyChannel.unsubscribe();
-            ablyChannel.detach((err) => {
-              if (err) {
-                console.warn('Error detaching channel:', err);
-              } else {
-                console.log('Channel detached successfully');
-              }
-            });
-          }
-        } catch (error) {
-          console.warn('Error cleaning up channel:', error);
-        }
+  return () => {
+    if (ablyChannel) {
+      try {
+        ablyChannel.unsubscribe();
+        ablyChannel.detach().catch(console.warn);
+      } catch (err) {
+        console.warn('Error cleaning up Ably channel:', err);
       }
-    };
-  }, [ablyChannel]);
+    }
+    if (ablyClient) ablyClient.close();
+  };
+}, [ablyChannel, ablyClient]);
+
 
   //separate useEffect for handling chat close/refresh
   useEffect(() => {
