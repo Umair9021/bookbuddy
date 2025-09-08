@@ -132,6 +132,8 @@
   animation: marquee 10s linear infinite;
 }
 
+
+
 /* Remove any previous Lenis CSS and replace with this */
 html.lenis, html.lenis body {
   height: auto;
@@ -181,4 +183,10 @@ body {
 button {
   pointer-events: auto !important;
   z-index: auto;
+}
+
+
+.bg-black
+{
+    background-color: transparent;
 }

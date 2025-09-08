@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import getImageSrc from '@/utils/getImageSrc';
+import { useChat } from '@/contexts/ChatContext';
 
 const BookDetailsModal = ({ isOpen, onClose, book }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const { openChatWithUser } = useChat();
 
     React.useEffect(() => {
         if (isOpen && book) {
@@ -15,6 +17,21 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
 
     const handleThumbnailClick = (index) => {
         setSelectedImageIndex(index);
+    };
+
+     const handleContactSeller = () => {
+        if (book.seller) {
+            // Open chat with the seller
+            openChatWithUser({
+                _id: book.seller._id || book.seller.id,
+                name: book.seller.name,
+                email: book.seller.email,
+                dp: book.seller.profilePicture || '',
+                major: book.seller.major || '',
+                collegeName: book.seller.collegeName || ''
+            });
+        }
+        onClose(); // Close the modal
     };
 
     if (!book) return null;
@@ -144,6 +161,7 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                             : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
                                         }`}
                                     disabled={book.status === 'Sold'}
+                                     onClick={handleContactSeller} 
                                 >
                                     {book.status === 'Sold'
                                         ? 'Sold Out'

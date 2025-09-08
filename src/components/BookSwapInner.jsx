@@ -34,8 +34,8 @@ const BookSwapInner = () => {
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const yearOptions = ['All', 'First Year', 'Second Year', 'Third Year'];
-  const conditionOptions = ['All','New', 'Like New', 'Good', 'Fair'];
-  const departmentOptions = ['All','General','Mechanical', 'Auto & Diesel', 'Civil','Quantity Survey','ICT'];
+  const conditionOptions = ['All', 'New', 'Like New', 'Good', 'Fair'];
+  const departmentOptions = ['All', 'General', 'Mechanical', 'Auto & Diesel', 'Civil', 'Quantity Survey', 'ICT'];
 
   const getConditionBadgeStyle = (condition) => {
     switch (condition?.toLowerCase()) {
@@ -142,7 +142,7 @@ const BookSwapInner = () => {
     if (selecteddepartment !== 'All') {
       const beforeCount = filtered.length;
       filtered = filtered.filter(book => {
-        const deptMatch = book.department === selecteddepartment ;
+        const deptMatch = book.department === selecteddepartment;
         return deptMatch;
       });
     }
@@ -177,7 +177,7 @@ const BookSwapInner = () => {
 
   const updateUrlParams = () => {
     const params = new URLSearchParams();
-    
+
     if (selectedYear !== 'All') params.set("year", selectedYear);
     if (selecteddepartment !== 'All') params.set("department", selecteddepartment);
     if (selectedCondition !== 'All') params.set("condition", selectedCondition);
@@ -292,8 +292,8 @@ const BookSwapInner = () => {
   };
 
   const yearDisplayText = selectedYear === 'All' ? 'Year' : selectedYear;
-const departmentDisplayText = selecteddepartment === 'All' ? 'Department' : selecteddepartment;
-const conditionDisplayText = selectedCondition === 'All' ? 'Condition' : selectedCondition;
+  const departmentDisplayText = selecteddepartment === 'All' ? 'Department' : selecteddepartment;
+  const conditionDisplayText = selectedCondition === 'All' ? 'Condition' : selectedCondition;
 
   const clearAllFilters = () => {
     setSearchQuery('');
@@ -330,7 +330,7 @@ const conditionDisplayText = selectedCondition === 'All' ? 'Condition' : selecte
     );
   }
 
- const hasActiveFilters = selectedYear !== 'All' || selecteddepartment !== 'All' || selectedCondition !== 'All' || searchQuery.trim();
+  const hasActiveFilters = selectedYear !== 'All' || selecteddepartment !== 'All' || selectedCondition !== 'All' || searchQuery.trim();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -339,7 +339,7 @@ const conditionDisplayText = selectedCondition === 'All' ? 'Condition' : selecte
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-3xl font-bold text-slate-900 text-center mb-8">Browse Books</h2>
-        
+
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:items-end items-stretch">
           <div className="flex-1">
@@ -500,8 +500,11 @@ const conditionDisplayText = selectedCondition === 'All' ? 'Condition' : selecte
                         ? 'bg-yellow-500 hover:bg-yellow-600'
                         : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
                       }`}
-                    disabled={book.status === 'Sold'}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/chatboard?user=${book?.sellerId}`);
+                      console.log("/chatboard?user=${book.sellerId}");
+                    }}
                   >
                     {book.status === 'Sold'
                       ? 'Sold Out'

@@ -192,7 +192,7 @@ const BookSwap = () => {
                                                         alt={book.title}
                                                         className="w-full h-72 sm:h-85 object-cover rounded"
                                                     />
-                                                    <div className="absolute bottom-0 left-[-11] right-0 bg-black/50 text-white p-2 pl-5 w-72 sm:w-92.5 rounded-b">
+                                                    <div className="absolute bottom-0 left-[-11] right-0 bg-black/50 text-white p-2 pl-5 w-63 sm:w-92.5 rounded-b">
                                                         <p className="text-xs sm:text-sm font-semibold truncate">{book.title}</p>
                                                         <p className="text-xs opacity-80">${book.price}</p>
                                                     </div>
