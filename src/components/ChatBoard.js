@@ -22,7 +22,7 @@
 //   const [currentUser, setCurrentUser] = useState(null);
 //   const [loading, setLoading] = useState(false);
 //   const [sending, setSending] = useState(false);
-  
+
 //   // Real data from backend
 //   const [conversations, setConversations] = useState([]);
 //   const [messages, setMessages] = useState([]);
@@ -41,18 +41,18 @@
 //   useEffect(() => {
 //     const initializeAbly = async () => {
 //     if (isAblyConnecting || ablyClient) return;
-    
+
 //     setIsAblyConnecting(true);
 //     setAblyError(null);
-    
+
 //     try {
 //       console.log('Initializing Ably connection...');
-      
+
 //       const Ably = (await import('ably')).default;
-      
+
 //       // Generate a consistent clientId
 //       const clientId = `user-${currentUser?.id || 'anonymous'}-${Date.now()}`;
-      
+
 //       // Use authUrl with clientId parameter
 //       const client = new Ably.Realtime({
 //         authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
@@ -98,7 +98,7 @@
 //       });
 
 //       setAblyClient(client);
-      
+
 //     } catch (error) {
 //       console.error('Error initializing Ably:', error);
 //       setAblyError('Failed to initialize chat: ' + error.message);
@@ -113,7 +113,7 @@
 
 //     // Get chat context
 //    const { isChatOpen, setIsChatOpen, targetUser, shouldCreateConversation, autoOpenConversation, resetChatState } = useChat();
-    
+
 //     const messagesEndRef = useRef(null);
 
 //      //useEffect to handle auto-opening conversations
@@ -141,7 +141,7 @@
 //           // If not, create new conversation and open it
 //           await createConversation(user._id);
 //         }
-        
+
 //         // Reset the flag
 //         resetChatState();
 //       } catch (error) {
@@ -188,7 +188,7 @@
 //       try {
 //         const stored = localStorage.getItem(`unreadCounts_${userId}`);
 //         const storedLastSeen = localStorage.getItem(`lastSeenMessages_${userId}`);
-        
+
 //         if (stored) {
 //           setUnreadCounts(JSON.parse(stored));
 //         }
@@ -216,7 +216,7 @@
 //     const markConversationAsRead = (conversationId) => {
 //       setUnreadCounts(prev => {
 //         const newCounts = { ...prev, [conversationId]: 0 };
-        
+
 //         // Update last seen message timestamp
 //         const latestMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 //         const newLastSeen = {
@@ -224,7 +224,7 @@
 //           [conversationId]: latestMessage?.createdAt || new Date().toISOString()
 //         };
 //         setLastSeenMessages(newLastSeen);
-        
+
 //         saveUnreadCounts(newCounts, newLastSeen);
 //         return newCounts;
 //       });
@@ -244,7 +244,7 @@
 //     const calculateUnreadCount = (conversation) => {
 //       const conversationId = conversation._id;
 //       const lastSeen = lastSeenMessages[conversationId];
-      
+
 //       if (!lastSeen || !conversation.lastMessage) {
 //         return unreadCounts[conversationId] || 0;
 //       }
@@ -257,7 +257,7 @@
 //       // If last message timestamp is after last seen, there's at least 1 unread
 //       const lastMessageTime = new Date(conversation.lastMessage.timestamp).getTime();
 //       const lastSeenTime = new Date(lastSeen).getTime();
-      
+
 //       if (lastMessageTime > lastSeenTime) {
 //         return Math.max(1, unreadCounts[conversationId] || 1);
 //       }
@@ -281,7 +281,7 @@
 //           // If not, create new conversation
 //           await createConversation(user._id);
 //         }
-        
+
 //         // Reset the flag
 //         resetChatState();
 //       } catch (error) {
@@ -296,7 +296,7 @@
 //         setLoading(true);
 //         const response = await fetch(`/api/chat/conversation?userId=${userId}`);
 //         const data = await response.json();
-        
+
 //         if (data.success) {
 //           setConversations(data.conversations);
 //         }
@@ -319,9 +319,9 @@
 //          console.log('Loading messages for conversation:', conversationId);
 //         const response = await fetch(`/api/chat/messages?conversationId=${conversationId}`);
 
-         
+
 //       console.log('Response status:', response.status);
-      
+
 //       if (!response.ok) {
 //         const errorText = await response.text();
 //         console.error('Error response:', errorText);
@@ -329,7 +329,7 @@
 //       }
 //         const data = await response.json();
 //         console.log('Messages data:', data);
-        
+
 //         if (data.success) {
 //           setMessages(data.messages);
 //           // Mark as read when messages are loaded
@@ -350,7 +350,7 @@
 //       try {
 //         const response = await fetch(`/api/chat/users/search?query=${query}&currentUserId=${currentUser.id}`);
 //         const data = await response.json();
-        
+
 //         if (data.success) {
 //           setSearchResults(data.users);
 //         }
@@ -372,14 +372,14 @@
 //             userId2: otherUserId
 //           })
 //         });
-        
+
 //         const data = await response.json();
 //         if (data.success) {
 //           setSelectedConversation(data.conversation);
 //           setCurrentView('chat');
 //           loadMessages(data.conversation._id);
 //           setupAblyChannel(data.conversation._id);
-          
+
 //           // Add to conversations list if new
 //           const existingConv = conversations.find(c => c._id === data.conversation._id);
 //           if (!existingConv) {
@@ -405,7 +405,7 @@
 //     if (!ablyClient || ablyClient.connection.state !== 'connected') {
 //       console.log('Ably client not ready, delaying channel setup');
 //       setAblyError('Connecting to chat service...');
-      
+
 //       // Retry after connection is established
 //       const checkConnection = () => {
 //         if (ablyClient && ablyClient.connection.state === 'connected') {
@@ -434,13 +434,13 @@
 
 //       const channel = ablyClient.channels.get(`chat-${conversationId}`);
 //       setCurrentChannelId(conversationId);
-      
+
 //       // Add channel event listeners
 //       channel.on('attached', () => {
 //         console.log('Channel attached successfully:', conversationId);
 //         setAblyError(null);
 //       });
-      
+
 //       channel.on('failed', (error) => {
 //         console.error('Channel failed:', error);
 //         setAblyError('Failed to join chat channel');
@@ -506,7 +506,7 @@
 //       });
 
 //       setAblyChannel(channel);
-      
+
 //     } catch (error) {
 //       console.error('Error setting up Ably channel:', error);
 //       setAblyError('Failed to set up chat channel');
@@ -555,7 +555,7 @@
 //     };
 
 //     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
 //     return () => {
 //       window.removeEventListener('beforeunload', handleBeforeUnload);
 //     };
@@ -608,13 +608,13 @@
 //       }
 
 //       const data = await response.json();
-      
+
 //       if (data.success) {
 //         // Replace temp message with real one
 //         setMessages(prev => prev.map(msg => 
 //           msg._id === tempMessage._id ? data.message : msg
 //         ));
-        
+
 //         // Update conversation in list
 //         setConversations(prev => prev.map(conv => 
 //           conv._id === selectedConversation._id 
@@ -667,7 +667,7 @@
 //     setSelectedContact(null);
 //     setMessages([]);
 //     setCurrentView('contacts');
-    
+
 //     // Clean up Ably channel but keep the client connection
 //     if (ablyChannel) {
 //       try {
@@ -685,10 +685,10 @@
 //     setSelectedConversation(conversation);
 //     setCurrentView('chat'); // This ensures we go directly to chat view 
 //     loadMessages(conversation._id);
-    
+
 //     // Mark conversation as read when selected
 //     markConversationAsRead(conversation._id);
-    
+
 //     if (ablyClient && ablyClient.connection.state === 'connected') {
 //       debouncedSetupAblyChannel(conversation._id);
 //     } else {
@@ -702,7 +702,7 @@
 //       };
 //       waitForConnection();
 //     }
-    
+
 //     const otherParticipant = conversation.participants.find(p => p._id !== currentUser.id);
 //     setSelectedContact(otherParticipant);
 //      resetChatState();  // Reset auto-open state
@@ -801,7 +801,7 @@
 //             onClick={() => setIsOpen(false)}
 //           />
 //         )}
-        
+
 //         {/* Chat Container */}
 //         <div className="fixed bottom-4 right-4 z-50">
 //           {/* Chat Button */}
@@ -817,7 +817,7 @@
 //           {/* Chat Interface */}
 //           {isOpen && (
 //             <div className="bg-white rounded-lg shadow-2xl w-80 sm:w-96 h-96 sm:h-[500px] flex flex-col overflow-hidden border">
-              
+
 //               {/* Conversations List View */}
 //               {currentView === 'contacts' && (
 //                 <>
@@ -854,9 +854,9 @@
 //                       conversations.map((conversation) => {
 //                         const otherParticipant = getOtherParticipant(conversation);
 //                         if (!otherParticipant) return null;
-                        
+
 //                         const unreadCount = calculateUnreadCount(conversation);
-                        
+
 //                         return (
 //                           <div
 //                             key={conversation._id}
@@ -1043,7 +1043,7 @@
 //                       {messages.map((msg) => {
 //                         const isMe = msg.senderId._id === currentUser.id || msg.senderId === currentUser.id;
 //                         const sender = typeof msg.senderId === 'object' ? msg.senderId : { name: 'Unknown' };
-                        
+
 //                         return (
 //                           <div
 //                             key={msg._id}
@@ -1144,7 +1144,7 @@
 //   const [currentUser, setCurrentUser] = useState(null);
 //   const [loading, setLoading] = useState(false);
 //   const [sending, setSending] = useState(false);
-  
+
 //   // Real data from backend
 //   const [conversations, setConversations] = useState([]);
 //   const [messages, setMessages] = useState([]);
@@ -1163,18 +1163,18 @@
 //   useEffect(() => {
 //     const initializeAbly = async () => {
 //     if (isAblyConnecting || ablyClient) return;
-    
+
 //     setIsAblyConnecting(true);
 //     setAblyError(null);
-    
+
 //     try {
 //       console.log('Initializing Ably connection...');
-      
+
 //       const Ably = (await import('ably')).default;
-      
+
 //       // Generate a consistent clientId
 //       const clientId = `user-${currentUser?.id || 'anonymous'}-${Date.now()}`;
-      
+
 //       // Use authUrl with clientId parameter
 //       const client = new Ably.Realtime({
 //         authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
@@ -1220,7 +1220,7 @@
 //       });
 
 //       setAblyClient(client);
-      
+
 //     } catch (error) {
 //       console.error('Error initializing Ably:', error);
 //       setAblyError('Failed to initialize chat: ' + error.message);
@@ -1235,7 +1235,7 @@
 
 //     // Get chat context
 //    const { isChatOpen, setIsChatOpen, targetUser, shouldCreateConversation, autoOpenConversation, resetChatState } = useChat();
-    
+
 //     const messagesEndRef = useRef(null);
 
 //      //useEffect to handle auto-opening conversations
@@ -1263,7 +1263,7 @@
 //           // If not, create new conversation and open it
 //           await createConversation(user._id);
 //         }
-        
+
 //         // Reset the flag
 //         resetChatState();
 //       } catch (error) {
@@ -1310,7 +1310,7 @@
 //       try {
 //         const stored = localStorage.getItem(`unreadCounts_${userId}`);
 //         const storedLastSeen = localStorage.getItem(`lastSeenMessages_${userId}`);
-        
+
 //         if (stored) {
 //           setUnreadCounts(JSON.parse(stored));
 //         }
@@ -1338,7 +1338,7 @@
 //     const markConversationAsRead = (conversationId) => {
 //       setUnreadCounts(prev => {
 //         const newCounts = { ...prev, [conversationId]: 0 };
-        
+
 //         // Update last seen message timestamp
 //         const latestMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 //         const newLastSeen = {
@@ -1346,7 +1346,7 @@
 //           [conversationId]: latestMessage?.createdAt || new Date().toISOString()
 //         };
 //         setLastSeenMessages(newLastSeen);
-        
+
 //         saveUnreadCounts(newCounts, newLastSeen);
 //         return newCounts;
 //       });
@@ -1366,7 +1366,7 @@
 //     const calculateUnreadCount = (conversation) => {
 //       const conversationId = conversation._id;
 //       const lastSeen = lastSeenMessages[conversationId];
-      
+
 //       if (!lastSeen || !conversation.lastMessage) {
 //         return unreadCounts[conversationId] || 0;
 //       }
@@ -1379,14 +1379,14 @@
 //       // If last message timestamp is after last seen, there's at least 1 unread
 //       const lastMessageTime = new Date(conversation.lastMessage.timestamp).getTime();
 //       const lastSeenTime = new Date(lastSeen).getTime();
-      
+
 //       if (lastMessageTime > lastSeenTime) {
 //         return Math.max(1, unreadCounts[conversationId] || 1);
 //       }
 
 //       return 0;
 //     };
-  
+
 
 
 //     // Auto-create conversation with target user
@@ -1405,7 +1405,7 @@
 //           // If not, create new conversation
 //           await createConversation(user._id);
 //         }
-        
+
 //         // Reset the flag
 //         resetChatState();
 //       } catch (error) {
@@ -1420,7 +1420,7 @@
 //         setLoading(true);
 //         const response = await fetch(`/api/chat/conversation?userId=${userId}`);
 //         const data = await response.json();
-        
+
 //         if (data.success) {
 //           setConversations(data.conversations);
 //         }
@@ -1443,9 +1443,9 @@
 //          console.log('Loading messages for conversation:', conversationId);
 //         const response = await fetch(`/api/chat/messages?conversationId=${conversationId}`);
 
-         
+
 //       console.log('Response status:', response.status);
-      
+
 //       if (!response.ok) {
 //         const errorText = await response.text();
 //         console.error('Error response:', errorText);
@@ -1453,7 +1453,7 @@
 //       }
 //         const data = await response.json();
 //         console.log('Messages data:', data);
-        
+
 //         if (data.success) {
 //           setMessages(data.messages);
 //           // Mark as read when messages are loaded
@@ -1474,7 +1474,7 @@
 //       try {
 //         const response = await fetch(`/api/chat/users/search?query=${query}&currentUserId=${currentUser.id}`);
 //         const data = await response.json();
-        
+
 //         if (data.success) {
 //           setSearchResults(data.users);
 //         }
@@ -1496,14 +1496,14 @@
 //             userId2: otherUserId
 //           })
 //         });
-        
+
 //         const data = await response.json();
 //         if (data.success) {
 //           setSelectedConversation(data.conversation);
 //           setCurrentView('chat');
 //           loadMessages(data.conversation._id);
 //           setupAblyChannel(data.conversation._id);
-          
+
 //           // Add to conversations list if new
 //           const existingConv = conversations.find(c => c._id === data.conversation._id);
 //           if (!existingConv) {
@@ -1529,7 +1529,7 @@
 //     if (!ablyClient || ablyClient.connection.state !== 'connected') {
 //       console.log('Ably client not ready, delaying channel setup');
 //       setAblyError('Connecting to chat service...');
-      
+
 //       // Retry after connection is established
 //       const checkConnection = () => {
 //         if (ablyClient && ablyClient.connection.state === 'connected') {
@@ -1558,13 +1558,13 @@
 
 //       const channel = ablyClient.channels.get(`chat-${conversationId}`);
 //       setCurrentChannelId(conversationId);
-      
+
 //       // Add channel event listeners
 //       channel.on('attached', () => {
 //         console.log('Channel attached successfully:', conversationId);
 //         setAblyError(null);
 //       });
-      
+
 //       channel.on('failed', (error) => {
 //         console.error('Channel failed:', error);
 //         setAblyError('Failed to join chat channel');
@@ -1630,7 +1630,7 @@
 //       });
 
 //       setAblyChannel(channel);
-      
+
 //     } catch (error) {
 //       console.error('Error setting up Ably channel:', error);
 //       setAblyError('Failed to set up chat channel');
@@ -1679,7 +1679,7 @@
 //     };
 
 //     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
 //     return () => {
 //       window.removeEventListener('beforeunload', handleBeforeUnload);
 //     };
@@ -1732,13 +1732,13 @@
 //       }
 
 //       const data = await response.json();
-      
+
 //       if (data.success) {
 //         // Replace temp message with real one
 //         setMessages(prev => prev.map(msg => 
 //           msg._id === tempMessage._id ? data.message : msg
 //         ));
-        
+
 //         // Update conversation in list
 //         setConversations(prev => prev.map(conv => 
 //           conv._id === selectedConversation._id 
@@ -1791,7 +1791,7 @@
 //     setSelectedContact(null);
 //     setMessages([]);
 //     setCurrentView('contacts');
-    
+
 //     // Clean up Ably channel but keep the client connection
 //     if (ablyChannel) {
 //       try {
@@ -1809,10 +1809,10 @@
 //     setSelectedConversation(conversation);
 //     setCurrentView('chat'); // This ensures we go directly to chat view 
 //     loadMessages(conversation._id);
-    
+
 //     // Mark conversation as read when selected
 //     markConversationAsRead(conversation._id);
-    
+
 //     if (ablyClient && ablyClient.connection.state === 'connected') {
 //       debouncedSetupAblyChannel(conversation._id);
 //     } else {
@@ -1826,7 +1826,7 @@
 //       };
 //       waitForConnection();
 //     }
-    
+
 //     const otherParticipant = conversation.participants.find(p => p._id !== currentUser.id);
 //     setSelectedContact(otherParticipant);
 //      resetChatState();  // Reset auto-open state
@@ -1925,7 +1925,7 @@
 //             onClick={() => setIsOpen(false)}
 //           />
 //         )}
-        
+
 //         {/* Chat Container */}
 //         <div className="fixed bottom-4 right-4 z-50">
 //           {/* Chat Button */}
@@ -1941,7 +1941,7 @@
 //           {/* Chat Interface */}
 //           {isOpen && (
 //             <div className="bg-white rounded-lg shadow-2xl w-80 sm:w-96 h-96 sm:h-[500px] flex flex-col overflow-hidden border">
-              
+
 //               {/* Conversations List View */}
 //               {currentView === 'contacts' && (
 //                 <>
@@ -1978,9 +1978,9 @@
 //                       conversations.map((conversation) => {
 //                         const otherParticipant = getOtherParticipant(conversation);
 //                         if (!otherParticipant) return null;
-                        
+
 //                         const unreadCount = calculateUnreadCount(conversation);
-                        
+
 //                         return (
 //                           <div
 //                             key={conversation._id}
@@ -2167,7 +2167,7 @@
 //                       {messages.map((msg) => {
 //                         const isMe = msg.senderId._id === currentUser.id || msg.senderId === currentUser.id;
 //                         const sender = typeof msg.senderId === 'object' ? msg.senderId : { name: 'Unknown' };
-                        
+
 //                         return (
 //                           <div
 //                             key={msg._id}
@@ -2286,99 +2286,99 @@ const ChatBoard = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  
+
   // Real data from backend
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [ablyChannel, setAblyChannel] = useState(null);
   const [ablyClient, setAblyClient] = useState(null);
-const [ablyError, setAblyError] = useState(null);
-const [isAblyConnecting, setIsAblyConnecting] = useState(false);
-const [currentChannelId, setCurrentChannelId] = useState(null);
+  const [ablyError, setAblyError] = useState(null);
+  const [isAblyConnecting, setIsAblyConnecting] = useState(false);
+  const [currentChannelId, setCurrentChannelId] = useState(null);
 
 
-// Update your initializeAbly function
-useEffect(() => {
-  const initializeAbly = async () => {
-  if (isAblyConnecting || ablyClient) return;
-  
-  setIsAblyConnecting(true);
-  setAblyError(null);
-  
-  try {
-    console.log('Initializing Ably connection...');
-    
-    const Ably = (await import('ably')).default;
-    
-    // Generate a consistent clientId
-    const clientId = `user-${currentUser?.id || 'anonymous'}-${Date.now()}`;
-    
-    // Use authUrl with clientId parameter
-    const client = new Ably.Realtime({
-      authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
-      autoConnect: true,
-      clientId: clientId, // Use the same clientId here
-      log: { level: 2 },
-      closeOnUnload: false,
-      disconnectedRetryTimeout: 1000,
-    });
+  // Update your initializeAbly function
+  useEffect(() => {
+    const initializeAbly = async () => {
+      if (isAblyConnecting || ablyClient) return;
 
-    // Add connection event listeners
-    client.connection.on('connecting', () => {
-      console.log('Ably connecting...');
-      setAblyError('Connecting to chat service...');
-    });
-
-    client.connection.on('connected', () => {
-      console.log('Ably connected successfully');
+      setIsAblyConnecting(true);
       setAblyError(null);
-      setIsAblyConnecting(false);
-    });
 
-    client.connection.on('disconnected', () => {
-      console.log('Ably disconnected');
-      setAblyError('Disconnected from chat service');
-    });
+      try {
+        console.log('Initializing Ably connection...');
 
-    client.connection.on('suspended', () => {
-      console.log('Ably connection suspended');
-      setAblyError('Connection suspended. Reconnecting...');
-    });
+        const Ably = (await import('ably')).default;
 
-    client.connection.on('failed', (error) => {
-      console.error('Ably connection failed:', error);
-      setAblyError('Connection failed: ' + error.message);
-      setIsAblyConnecting(false);
-    });
+        // Generate a consistent clientId
+        const clientId = `user-${currentUser?.id || 'anonymous'}-${Date.now()}`;
 
-    client.connection.on('closed', () => {
-      console.log('Ably connection closed');
-      setAblyError('Connection closed');
-      setIsAblyConnecting(false);
-    });
+        // Use authUrl with clientId parameter
+        const client = new Ably.Realtime({
+          authUrl: `/api/chat/createToken?clientId=${encodeURIComponent(clientId)}`,
+          autoConnect: true,
+          clientId: clientId, // Use the same clientId here
+          log: { level: 2 },
+          closeOnUnload: false,
+          disconnectedRetryTimeout: 1000,
+        });
 
-    setAblyClient(client);
-    
-  } catch (error) {
-    console.error('Error initializing Ably:', error);
-    setAblyError('Failed to initialize chat: ' + error.message);
-    setIsAblyConnecting(false);
-  }
-};
-  if (isOpen && !ablyClient && !isAblyConnecting) {
-    initializeAbly();
-  }
-}, [isOpen, ablyClient, isAblyConnecting, currentUser]);
+        // Add connection event listeners
+        client.connection.on('connecting', () => {
+          console.log('Ably connecting...');
+          setAblyError('Connecting to chat service...');
+        });
+
+        client.connection.on('connected', () => {
+          console.log('Ably connected successfully');
+          setAblyError(null);
+          setIsAblyConnecting(false);
+        });
+
+        client.connection.on('disconnected', () => {
+          console.log('Ably disconnected');
+          setAblyError('Disconnected from chat service');
+        });
+
+        client.connection.on('suspended', () => {
+          console.log('Ably connection suspended');
+          setAblyError('Connection suspended. Reconnecting...');
+        });
+
+        client.connection.on('failed', (error) => {
+          console.error('Ably connection failed:', error);
+          setAblyError('Connection failed: ' + error.message);
+          setIsAblyConnecting(false);
+        });
+
+        client.connection.on('closed', () => {
+          console.log('Ably connection closed');
+          setAblyError('Connection closed');
+          setIsAblyConnecting(false);
+        });
+
+        setAblyClient(client);
+
+      } catch (error) {
+        console.error('Error initializing Ably:', error);
+        setAblyError('Failed to initialize chat: ' + error.message);
+        setIsAblyConnecting(false);
+      }
+    };
+    if (isOpen && !ablyClient && !isAblyConnecting) {
+      initializeAbly();
+    }
+  }, [isOpen, ablyClient, isAblyConnecting, currentUser]);
 
 
   // Get chat context
- const { isChatOpen, setIsChatOpen, targetUser, shouldCreateConversation, autoOpenConversation, resetChatState } = useChat();
-  
+  const { isChatOpen, setIsChatOpen, targetUser, shouldCreateConversation, autoOpenConversation, resetChatState } = useChat();
+
   const messagesEndRef = useRef(null);
 
-   //useEffect to handle auto-opening conversations
-   useEffect(() => {
+  //useEffect to handle auto-opening conversations
+  useEffect(() => {
     if (isOpen && autoOpenConversation && currentUser) {
       handleAutoOpenConversation(autoOpenConversation);
     }
@@ -2388,7 +2388,7 @@ useEffect(() => {
 
   const handleAutoOpenConversation = async (user) => {
     try {
-       setIsAutoOpening(true);
+      setIsAutoOpening(true);
       // Check if conversation already exists
       const existingConversation = conversations.find(conv => {
         const otherParticipant = conv.participants.find(p => p._id === user._id);
@@ -2402,15 +2402,15 @@ useEffect(() => {
         // If not, create new conversation and open it
         await createConversation(user._id);
       }
-      
+
       // Reset the flag
       resetChatState();
     } catch (error) {
       console.error('Error auto-opening conversation:', error);
       resetChatState();
-    }finally {
-    setIsAutoOpening(false);
-  }
+    } finally {
+      setIsAutoOpening(false);
+    }
   };
 
 
@@ -2444,7 +2444,7 @@ useEffect(() => {
   }, []);
 
   // Auto-create conversation with target user
-   const handleAutoCreateConversation = async (user) => {
+  const handleAutoCreateConversation = async (user) => {
     try {
       // Check if conversation already exists
       const existingConversation = conversations.find(conv => {
@@ -2459,7 +2459,7 @@ useEffect(() => {
         // If not, create new conversation
         await createConversation(user._id);
       }
-      
+
       // Reset the flag
       resetChatState();
     } catch (error) {
@@ -2474,7 +2474,7 @@ useEffect(() => {
       setLoading(true);
       const response = await fetch(`/api/chat/conversation?userId=${userId}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setConversations(data.conversations);
       }
@@ -2484,7 +2484,7 @@ useEffect(() => {
       setLoading(false);
     }
   };
-    const handleClose = () => {
+  const handleClose = () => {
     setIsOpen(false);
     setIsChatOpen(false);
     resetChatState();
@@ -2493,20 +2493,20 @@ useEffect(() => {
   // Load messages for a conversation
   const loadMessages = async (conversationId) => {
     try {
-       console.log('Loading messages for conversation:', conversationId);
+      console.log('Loading messages for conversation:', conversationId);
       const response = await fetch(`/api/chat/messages?conversationId=${conversationId}`);
 
-       
-    console.log('Response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-    }
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
       const data = await response.json();
       console.log('Messages data:', data);
-      
+
       if (data.success) {
         setMessages(data.messages);
       }
@@ -2525,7 +2525,7 @@ useEffect(() => {
     try {
       const response = await fetch(`/api/chat/users/search?query=${query}&currentUserId=${currentUser.id}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setSearchResults(data.users);
       }
@@ -2547,186 +2547,288 @@ useEffect(() => {
           userId2: otherUserId
         })
       });
-      
+
       const data = await response.json();
       if (data.success) {
         setSelectedConversation(data.conversation);
         setCurrentView('chat');
         loadMessages(data.conversation._id);
         setupAblyChannel(data.conversation._id);
-        
+
         // Add to conversations list if new
         const existingConv = conversations.find(c => c._id === data.conversation._id);
         if (!existingConv) {
           setConversations(prev => [data.conversation, ...prev]);
         }
         // Find the other participant
-      const otherParticipant = data.conversation.participants.find(p => p._id !== currentUser.id);
-      setSelectedContact(otherParticipant);
+        const otherParticipant = data.conversation.participants.find(p => p._id !== currentUser.id);
+        setSelectedContact(otherParticipant);
       }
     } catch (error) {
       console.error('Error creating conversation:', error);
     }
   };
 
-// Setup Ably channel when conversation is selected
+  // Setup Ably channel when conversation is selected
 
-const setupAblyChannel = (conversationId) => {
-  // If we're already setting up or using this channel, skip
-  if (currentChannelId === conversationId && ablyChannel) {
-    console.log('Already using this channel, skipping setup');
-    return;
-  }
+  const setupAblyChannel = (conversationId) => {
+    // If we're already setting up or using this channel, skip
+    if (currentChannelId === conversationId && ablyChannel) {
+      console.log('Already using this channel, skipping setup');
+      return;
+    }
 
-  if (!ablyClient || ablyClient.connection.state !== 'connected') {
-    console.log('Ably client not ready, delaying channel setup');
-    setAblyError('Connecting to chat service...');
-    
-    // Retry after connection is established
-    const checkConnection = () => {
-      if (ablyClient && ablyClient.connection.state === 'connected') {
-        setupAblyChannel(conversationId);
-      } else if (ablyClient && ablyClient.connection.state === 'failed') {
-        setAblyError('Connection failed. Please refresh the page.');
-      } else {
-        setTimeout(checkConnection, 500);
+    if (!ablyClient || ablyClient.connection.state !== 'connected') {
+      console.log('Ably client not ready, delaying channel setup');
+      setAblyError('Connecting to chat service...');
+
+      // Retry after connection is established
+      const checkConnection = () => {
+        if (ablyClient && ablyClient.connection.state === 'connected') {
+          setupAblyChannel(conversationId);
+        } else if (ablyClient && ablyClient.connection.state === 'failed') {
+          setAblyError('Connection failed. Please refresh the page.');
+        } else {
+          setTimeout(checkConnection, 500);
+        }
+      };
+      setTimeout(checkConnection, 500);
+      return;
+    }
+
+    try {
+      // Unsubscribe from previous channel if it's different
+      if (ablyChannel && currentChannelId !== conversationId) {
+        try {
+          ablyChannel.unsubscribe();
+          ablyChannel.detach();
+          console.log('Detached from previous channel:', currentChannelId);
+        } catch (error) {
+          console.warn('Error detaching from previous channel:', error);
+        }
+      }
+
+      const channel = ablyClient.channels.get(`chat-${conversationId}`);
+      setCurrentChannelId(conversationId);
+
+      // Add channel event listeners
+      channel.on('attached', () => {
+        console.log('Channel attached successfully:', conversationId);
+        setAblyError(null);
+      });
+
+      channel.on('failed', (error) => {
+        console.error('Channel failed:', error);
+        setAblyError('Failed to join chat channel');
+      });
+
+      channel.on('detached', () => {
+        console.log('Channel detached:', conversationId);
+      });
+
+      channel.on('suspended', () => {
+        console.log('Channel suspended:', conversationId);
+        setAblyError('Channel connection suspended');
+      });
+
+      // Subscribe to messages
+      channel.subscribe("message", (message) => {
+        const newMessage = message.data;
+
+        if (newMessage.senderId !== currentUser.id) {
+          setMessages((prev) => [...prev, {
+            _id: newMessage._id || `ably-${Date.now()}`,
+            conversationId: newMessage.conversationId,
+            content: newMessage.content,
+            messageType: newMessage.messageType || 'text',
+            createdAt: newMessage.createdAt || new Date().toISOString(),
+            senderId: {
+              _id: newMessage.senderId,
+              name: newMessage.senderName || 'Unknown',
+              dp: newMessage.senderDp || ''
+            }
+          }]);
+        }
+      });
+
+      // Attach to the channel
+      channel.attach((err) => {
+        if (err) {
+          console.error('Failed to attach to channel:', err);
+          setAblyError('Failed to join chat');
+        } else {
+          console.log('Successfully attached to channel');
+        }
+      });
+
+      setAblyChannel(channel);
+
+    } catch (error) {
+      console.error('Error setting up Ably channel:', error);
+      setAblyError('Failed to set up chat channel');
+    }
+  };
+
+  //  useEffect to set the initial view
+  useEffect(() => {
+    if (isOpen && autoOpenConversation) {
+      setCurrentView('chat');
+    } else if (isOpen) {
+      setCurrentView('contacts');
+    }
+  }, [isOpen, autoOpenConversation]);
+
+  // Update the cleanup useEffect
+  useEffect(() => {
+    return () => {
+      // Only cleanup when component truly unmounts
+      if (ablyChannel) {
+        try {
+          // Check channel state before trying to detach
+          if (ablyChannel.state === 'attached' || ablyChannel.state === 'attaching') {
+            ablyChannel.unsubscribe();
+            ablyChannel.detach((err) => {
+              if (err) {
+                console.warn('Error detaching channel:', err);
+              } else {
+                console.log('Channel detached successfully');
+              }
+            });
+          }
+        } catch (error) {
+          console.warn('Error cleaning up channel:', error);
+        }
       }
     };
-    setTimeout(checkConnection, 500);
-    return;
-  }
+  }, [ablyChannel]);
 
-  try {
-    // Unsubscribe from previous channel if it's different
-    if (ablyChannel && currentChannelId !== conversationId) {
-      try {
-        ablyChannel.unsubscribe();
-        ablyChannel.detach();
-        console.log('Detached from previous channel:', currentChannelId);
-      } catch (error) {
-        console.warn('Error detaching from previous channel:', error);
+  //separate useEffect for handling chat close/refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (ablyClient) {
+        ablyClient.close();
       }
-    }
+    };
 
-    const channel = ablyClient.channels.get(`chat-${conversationId}`);
-    setCurrentChannelId(conversationId);
-    
-    // Add channel event listeners
-    channel.on('attached', () => {
-      console.log('Channel attached successfully:', conversationId);
-      setAblyError(null);
-    });
-    
-    channel.on('failed', (error) => {
-      console.error('Channel failed:', error);
-      setAblyError('Failed to join chat channel');
-    });
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
-    channel.on('detached', () => {
-      console.log('Channel detached:', conversationId);
-    });
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [ablyClient]);
 
-    channel.on('suspended', () => {
-      console.log('Channel suspended:', conversationId);
-      setAblyError('Channel connection suspended');
-    });
+  // const handleSendMessage = async () => {
+  //   if (!message.trim() || !selectedConversation || sending) return;
 
-    // Subscribe to messages
-    channel.subscribe("message", (message) => {
-      const newMessage = message.data;
+  //   // Check if Ably connection is still open
+  //   if (!ablyClient || ablyClient.connection.state !== 'connected') {
+  //     setAblyError('Connection lost. Please try again.');
+  //     return;
+  //   }
 
-      if (newMessage.senderId !== currentUser.id) {
-        setMessages((prev) => [...prev, {
-          _id: newMessage._id || `ably-${Date.now()}`,
-          conversationId: newMessage.conversationId,
-          content: newMessage.content,
-          messageType: newMessage.messageType || 'text',
-          createdAt: newMessage.createdAt || new Date().toISOString(),
-          senderId: {
-            _id: newMessage.senderId,
-            name: newMessage.senderName || 'Unknown',
-            dp: newMessage.senderDp || ''
-          }
-        }]);
-      }
-    });
+  //   setSending(true);
+  //   const tempMessage = {
+  //     _id: 'temp-' + Date.now(),
+  //     content: message,
+  //     senderId: {
+  //       _id: currentUser.id,
+  //       name: currentUser.user_metadata?.full_name || 'You',
+  //       dp: currentUser.user_metadata?.avatar_url || ''
+  //     },
+  //     createdAt: new Date().toISOString(),
+  //     messageType: 'text'
+  //   };
 
-    // Attach to the channel
-    channel.attach((err) => {
-      if (err) {
-        console.error('Failed to attach to channel:', err);
-        setAblyError('Failed to join chat');
-      } else {
-        console.log('Successfully attached to channel');
-      }
-    });
+  //   // Add message optimistically
+  //   setMessages(prev => [...prev, tempMessage]);
+  //   const messageText = message;
+  //   setMessage('');
 
-    setAblyChannel(channel);
-    
-  } catch (error) {
-    console.error('Error setting up Ably channel:', error);
-    setAblyError('Failed to set up chat channel');
-  }
-};
+  //   try {
+  //     const response = await fetch('/api/chat/send', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         conversationId: selectedConversation._id,
+  //         senderId: currentUser.id,
+  //         content: messageText,
+  //         messageType: 'text'
+  //       })
+  //     });
 
-//  useEffect to set the initial view
-useEffect(() => {
-  if (isOpen && autoOpenConversation) {
-    setCurrentView('chat');
-  } else if (isOpen) {
-    setCurrentView('contacts');
-  }
-}, [isOpen, autoOpenConversation]);
+  //     if (!response.ok) {
+  //       const errorText = await response.text();
+  //       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+  //     }
 
-// Update the cleanup useEffect
-useEffect(() => {
-  return () => {
-    // Only cleanup when component truly unmounts
-    if (ablyChannel) {
-      try {
-        // Check channel state before trying to detach
-        if (ablyChannel.state === 'attached' || ablyChannel.state === 'attaching') {
-          ablyChannel.unsubscribe();
-          ablyChannel.detach((err) => {
-            if (err) {
-              console.warn('Error detaching channel:', err);
-            } else {
-              console.log('Channel detached successfully');
-            }
-          });
-        }
-      } catch (error) {
-        console.warn('Error cleaning up channel:', error);
-      }
-    }
-  };
-}, [ablyChannel]);
+  //     const data = await response.json();
 
-//separate useEffect for handling chat close/refresh
-useEffect(() => {
-  const handleBeforeUnload = () => {
-    if (ablyClient) {
-      ablyClient.close();
-    }
-  };
+  //     if (data.success) {
+  //       // Replace temp message with real one
+  //       setMessages(prev => prev.map(msg =>
+  //         msg._id === tempMessage._id ? data.message : msg
+  //       ));
 
-  window.addEventListener('beforeunload', handleBeforeUnload);
-  
-  return () => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
-  };
-}, [ablyClient]);
+  //       // Update conversation in list
+  //       setConversations(prev => prev.map(conv =>
+  //         conv._id === selectedConversation._id
+  //           ? {
+  //             ...conv,
+  //             lastMessage: {
+  //               content: messageText,
+  //               timestamp: new Date(),
+  //               senderId: currentUser.id
+  //             }
+  //           }
+  //           : conv
+  //       ));
 
-const handleSendMessage = async () => {
+  //       // Publish to Ably channel if available and connected
+  //       if (ablyChannel && ablyClient.connection.state === 'connected') {
+  //         try {
+  //           await ablyChannel.publish("message", {
+  //             _id: data.message._id,
+  //             conversationId: data.message.conversationId,
+  //             senderId: data.message.senderId._id,
+  //             senderName: data.message.senderId.name,
+  //             senderDp: data.message.senderId.dp,
+  //             content: data.message.content,
+  //             messageType: data.message.messageType,
+  //             createdAt: data.message.createdAt
+  //           });
+  //         } catch (publishError) {
+  //           console.error('Failed to publish to Ably:', publishError);
+  //           // Don't show error to user for publish failures
+  //         }
+  //       }
+
+  //       console.log("Sending message payload:", {
+  //         conversationId: selectedConversation._id,
+  //         senderId: currentUser.id,
+  //         content: messageText
+  //       });
+
+  //     } else {
+  //       throw new Error(data.error || 'Failed to send message');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending message:', error);
+  //     // Remove temp message on error
+  //     setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
+  //     setMessage(messageText); // Restore message
+  //     alert('Failed to send message. Please try again.');
+  //   } finally {
+  //     setSending(false);
+  //   }
+  // };
+
+  const handleSendMessage = async () => {
   if (!message.trim() || !selectedConversation || sending) return;
 
-  // Check if Ably connection is still open
-  if (!ablyClient || ablyClient.connection.state !== 'connected') {
-    setAblyError('Connection lost. Please try again.');
-    return;
-  }
-
   setSending(true);
+
   const tempMessage = {
     _id: 'temp-' + Date.now(),
     content: message,
@@ -2747,9 +2849,7 @@ const handleSendMessage = async () => {
   try {
     const response = await fetch('/api/chat/send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conversationId: selectedConversation._id,
         senderId: currentUser.id,
@@ -2764,45 +2864,26 @@ const handleSendMessage = async () => {
     }
 
     const data = await response.json();
-    
+
     if (data.success) {
       // Replace temp message with real one
-      setMessages(prev => prev.map(msg => 
+      setMessages(prev => prev.map(msg =>
         msg._id === tempMessage._id ? data.message : msg
       ));
-      
+
       // Update conversation in list
-      setConversations(prev => prev.map(conv => 
-        conv._id === selectedConversation._id 
-          ? { 
-              ...conv, 
-              lastMessage: { 
-                content: messageText, 
+      setConversations(prev => prev.map(conv =>
+        conv._id === selectedConversation._id
+          ? {
+              ...conv,
+              lastMessage: {
+                content: messageText,
                 timestamp: new Date(),
                 senderId: currentUser.id
-              } 
+              }
             }
           : conv
       ));
-
-      // Publish to Ably channel if available and connected
-      if (ablyChannel && ablyClient.connection.state === 'connected') {
-        try {
-          await ablyChannel.publish("message", {
-            _id: data.message._id,
-            conversationId: data.message.conversationId,
-            senderId: data.message.senderId._id,
-            senderName: data.message.senderId.name,
-            senderDp: data.message.senderId.dp,
-            content: data.message.content,
-            messageType: data.message.messageType,
-            createdAt: data.message.createdAt
-          });
-        } catch (publishError) {
-          console.error('Failed to publish to Ably:', publishError);
-          // Don't show error to user for publish failures
-        }
-      }
     } else {
       throw new Error(data.error || 'Failed to send message');
     }
@@ -2817,71 +2898,72 @@ const handleSendMessage = async () => {
   }
 };
 
-const handleBackToContacts = () => {
-  // Reset chat-specific state
-  setSelectedConversation(null);
-  setSelectedContact(null);
-  setMessages([]);
-  setCurrentView('contacts');
-  
-  // Clean up Ably channel but keep the client connection
-  if (ablyChannel) {
-    try {
-      ablyChannel.unsubscribe();
-      setAblyChannel(null);
-      setCurrentChannelId(null);
-    } catch (error) {
-      console.warn('Error cleaning up channel:', error);
-    }
-  }
-};
 
-// Update handleConversationSelect to use the debounced version
-const handleConversationSelect = (conversation) => {
+  const handleBackToContacts = () => {
+    // Reset chat-specific state
+    setSelectedConversation(null);
+    setSelectedContact(null);
+    setMessages([]);
+    setCurrentView('contacts');
 
-  setSelectedConversation(conversation);
-  setCurrentView('chat'); // This ensures we go directly to chat view 
-  loadMessages(conversation._id);
-  
-  if (ablyClient && ablyClient.connection.state === 'connected') {
-    debouncedSetupAblyChannel(conversation._id);
-  } else {
-    setAblyError('Waiting for connection...');
-    const waitForConnection = () => {
-      if (ablyClient && ablyClient.connection.state === 'connected') {
-        debouncedSetupAblyChannel(conversation._id);
-      } else {
-        setTimeout(waitForConnection, 100);
+    // Clean up Ably channel but keep the client connection
+    if (ablyChannel) {
+      try {
+        ablyChannel.unsubscribe();
+        setAblyChannel(null);
+        setCurrentChannelId(null);
+      } catch (error) {
+        console.warn('Error cleaning up channel:', error);
       }
-    };
-    waitForConnection();
-  }
-  
-  const otherParticipant = conversation.participants.find(p => p._id !== currentUser.id);
-  setSelectedContact(otherParticipant);
-   resetChatState();  // Reset auto-open state
-};
-
-// Add a debounce function to prevent rapid channel switching
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
+    }
   };
-};
 
-// Create a debounced version of setupAblyChannel
-const debouncedSetupAblyChannel = useCallback(
-  debounce((conversationId) => {
-    setupAblyChannel(conversationId);
-  }, 300),
-  [ablyClient, ablyChannel]
-);
+  // Update handleConversationSelect to use the debounced version
+  const handleConversationSelect = (conversation) => {
+
+    setSelectedConversation(conversation);
+    setCurrentView('chat'); // This ensures we go directly to chat view 
+    loadMessages(conversation._id);
+
+    if (ablyClient && ablyClient.connection.state === 'connected') {
+      debouncedSetupAblyChannel(conversation._id);
+    } else {
+      setAblyError('Waiting for connection...');
+      const waitForConnection = () => {
+        if (ablyClient && ablyClient.connection.state === 'connected') {
+          debouncedSetupAblyChannel(conversation._id);
+        } else {
+          setTimeout(waitForConnection, 100);
+        }
+      };
+      waitForConnection();
+    }
+
+    const otherParticipant = conversation.participants.find(p => p._id !== currentUser.id);
+    setSelectedContact(otherParticipant);
+    resetChatState();  // Reset auto-open state
+  };
+
+  // Add a debounce function to prevent rapid channel switching
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // Create a debounced version of setupAblyChannel
+  const debouncedSetupAblyChannel = useCallback(
+    debounce((conversationId) => {
+      setupAblyChannel(conversationId);
+    }, 300),
+    [ablyClient, ablyChannel]
+  );
 
   // Handle new chat with search result
   const handleNewChatSelect = async (user) => {
@@ -2950,12 +3032,12 @@ const debouncedSetupAblyChannel = useCallback(
     <>
       {/* Background overlay when chat is open */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-transparent bg-opacity-20 z-40"
           onClick={() => setIsOpen(false)}
         />
       )}
-      
+
       {/* Chat Container */}
       <div className="fixed bottom-4 right-4 z-50">
         {/* Chat Button */}
@@ -2971,7 +3053,7 @@ const debouncedSetupAblyChannel = useCallback(
         {/* Chat Interface */}
         {isOpen && (
           <div className="bg-white rounded-lg shadow-2xl w-80 sm:w-96 h-96 sm:h-[500px] flex flex-col overflow-hidden border">
-            
+
             {/* Conversations List View */}
             {currentView === 'contacts' && (
               <>
@@ -2979,7 +3061,7 @@ const debouncedSetupAblyChannel = useCallback(
                 <div className="bg-green-600 text-white p-3 sm:p-4 flex items-center justify-between">
                   <h2 className="text-lg font-semibold">Chats</h2>
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <button
                       onClick={() => setCurrentView('newChat')}
                       className="p-1 hover:bg-green-700 rounded"
                       title="New Chat"
@@ -3008,7 +3090,7 @@ const debouncedSetupAblyChannel = useCallback(
                     conversations.map((conversation) => {
                       const otherParticipant = getOtherParticipant(conversation);
                       if (!otherParticipant) return null;
-                      
+
                       return (
                         <div
                           key={conversation._id}
@@ -3018,8 +3100,8 @@ const debouncedSetupAblyChannel = useCallback(
                           <div className="flex items-center space-x-3">
                             <div className="relative">
                               {otherParticipant.dp ? (
-                                <img 
-                                  src={otherParticipant.dp} 
+                                <img
+                                  src={otherParticipant.dp}
                                   alt={otherParticipant.name}
                                   className="w-10 h-10 rounded-full object-cover"
                                 />
@@ -3052,7 +3134,7 @@ const debouncedSetupAblyChannel = useCallback(
                     <div className="flex flex-col items-center justify-center h-full text-gray-500">
                       <MessageCircle size={48} className="mb-4 text-gray-300" />
                       <p className="text-center px-4">No conversations yet</p>
-                      <button 
+                      <button
                         onClick={() => setCurrentView('newChat')}
                         className="mt-2 text-green-600 hover:text-green-700"
                       >
@@ -3108,8 +3190,8 @@ const debouncedSetupAblyChannel = useCallback(
                     >
                       <div className="flex items-center space-x-3">
                         {user.dp ? (
-                          <img 
-                            src={user.dp} 
+                          <img
+                            src={user.dp}
                             alt={user.name}
                             className="w-10 h-10 rounded-full object-cover"
                           />
@@ -3142,14 +3224,14 @@ const debouncedSetupAblyChannel = useCallback(
                 <div className="bg-green-600 text-white p-3 sm:p-4 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <button
-                       onClick={handleBackToContacts}
+                      onClick={handleBackToContacts}
                       className="p-1 hover:bg-green-700 rounded"
                     >
                       <ArrowLeft size={18} />
                     </button>
                     {selectedContact.dp ? (
-                      <img 
-                        src={selectedContact.dp} 
+                      <img
+                        src={selectedContact.dp}
                         alt={selectedContact.name}
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                       />
@@ -3187,7 +3269,7 @@ const debouncedSetupAblyChannel = useCallback(
                     {messages.map((msg) => {
                       const isMe = msg.senderId._id === currentUser.id || msg.senderId === currentUser.id;
                       const sender = typeof msg.senderId === 'object' ? msg.senderId : { name: 'Unknown' };
-                      
+
                       return (
                         <div
                           key={msg._id}
@@ -3200,16 +3282,14 @@ const debouncedSetupAblyChannel = useCallback(
                               </div>
                             )}
                             <div
-                              className={`px-3 py-2 rounded-lg ${
-                                isMe
+                              className={`px-3 py-2 rounded-lg ${isMe
                                   ? 'bg-green-500 text-white rounded-br-none'
                                   : 'bg-white text-gray-800 rounded-bl-none shadow-sm'
-                              }`}
+                                }`}
                             >
                               <p className="text-sm">{msg.content}</p>
-                              <p className={`text-xs mt-1 ${
-                                isMe ? 'text-green-100' : 'text-gray-500'
-                              }`}>
+                              <p className={`text-xs mt-1 ${isMe ? 'text-green-100' : 'text-gray-500'
+                                }`}>
                                 {formatTimestamp(msg.createdAt)}
                               </p>
                             </div>

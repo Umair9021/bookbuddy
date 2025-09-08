@@ -131,6 +131,7 @@ export async function POST(request) {
     const { conversationId, senderId, content, messageType = "text" } =
       await request.json();
 
+
     // Save message in MongoDB
     const message = await Message.create({
       conversationId,
