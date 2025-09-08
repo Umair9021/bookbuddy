@@ -119,10 +119,6 @@
 
 
 
-
-
-
-
 import Ably from "ably";
 import dbConnect from "@/lib/db";
 import Conversation from "@/models/Conversation";
@@ -143,6 +139,10 @@ export async function POST(request) {
       messageType,
     });
 
+    // Get conversation details (with participants)
+    const conversation = await Conversation.findById(conversationId)
+      .populate("participants", "name dp");
+
     // Update conversation last message
     await Conversation.findByIdAndUpdate(conversationId, {
       "lastMessage.content": content,
@@ -151,20 +151,33 @@ export async function POST(request) {
       "lastMessage.messageType": messageType,
     });
 
-    // ✅ Use Ably.Rest for publishing from server (lighter than Realtime)
-    const ably = new Ably.Rest(process.env.ABLY_API_KEY);
-    const channel = ably.channels.get(`chat-${conversationId}`);
+    // Get sender details
+    const populatedMessage = await Message.findById(message._id).populate(
+      "senderId",
+      "name dp"
+    );
 
+    // ✅ Initialize Ably (server-side safe)
+    const ably = new Ably.Rest(process.env.ABLY_API_KEY);
+
+    // Publish to the chat channel
+    const channel = ably.channels.get(`chat-${conversationId}`);
     await channel.publish("message", {
-      _id: message._id,
+      _id: populatedMessage._id,
       conversationId,
       senderId,
+      senderName: populatedMessage.senderId.name,
+      senderDp: populatedMessage.senderId.dp,
       content,
       messageType,
-      createdAt: message.createdAt,
+      createdAt: populatedMessage.createdAt,
     });
 
-    return Response.json({ success: true, message }, { status: 201 });
+    // Send response back
+    return Response.json(
+      { success: true, message: populatedMessage, conversation },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Ably/Chat Error:", error);
     return Response.json(
@@ -173,7 +186,6 @@ export async function POST(request) {
     );
   }
 }
-
 
 
 
