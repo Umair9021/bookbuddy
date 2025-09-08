@@ -124,6 +124,21 @@ import dbConnect from "@/lib/db";
 import Conversation from "@/models/Conversation";
 import Message from "@/models/Message";
 
+
+import Ably from "ably";
+
+export async function GET() {
+  if (!process.env.ABLY_API_KEY) {
+    console.error("ABLY_API_KEY is missing!");
+    return Response.json({ error: "ABLY_API_KEY not configured" }, { status: 500 });
+  }
+
+  const client = new Ably.Rest(process.env.ABLY_API_KEY);
+  const tokenRequest = await client.auth.createTokenRequest({ clientId: "some-id" });
+
+  return Response.json(tokenRequest);
+}
+
 export async function POST(request) {
   try {
     await dbConnect();
@@ -157,6 +172,13 @@ export async function POST(request) {
       "senderId",
       "name dp"
     );
+
+    console.log("🔑 ABLY key in Vercel?", process.env.ABLY_API_KEY?.slice(0, 8));
+
+
+    console.log("Running on", process.env.VERCEL ? "Vercel" : "Local");
+console.log("ABLY_API_KEY exists?", !!process.env.ABLY_API_KEY);
+
 
     // ✅ Initialize Ably (server-side safe)
     const ably = new Ably.Rest(process.env.ABLY_API_KEY);
