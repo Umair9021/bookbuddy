@@ -1363,49 +1363,30 @@ const ChatBoard = () => {
     };
 
     // Calculate unread count for a conversation
-    // const calculateUnreadCount = (conversation) => {
-    //   const conversationId = conversation._id;
-    //   const lastSeen = lastSeenMessages[conversationId];
-      
-    //   if (!lastSeen || !conversation.lastMessage) {
-    //     return unreadCounts[conversationId] || 0;
-    //   }
-
-    //   // If the last message is from the current user, no unread messages
-    //   if (conversation.lastMessage.senderId === currentUser.id) {
-    //     return 0;
-    //   }
-
-    //   // If last message timestamp is after last seen, there's at least 1 unread
-    //   const lastMessageTime = new Date(conversation.lastMessage.timestamp).getTime();
-    //   const lastSeenTime = new Date(lastSeen).getTime();
-      
-    //   if (lastMessageTime > lastSeenTime) {
-    //     return Math.max(1, unreadCounts[conversationId] || 1);
-    //   }
-
-    //   return 0;
-    // };
     const calculateUnreadCount = (conversation) => {
-  const conversationId = conversation._id;
-  const lastSeen = lastSeenMessages[conversationId];
+      const conversationId = conversation._id;
+      const lastSeen = lastSeenMessages[conversationId];
+      
+      if (!lastSeen || !conversation.lastMessage) {
+        return unreadCounts[conversationId] || 0;
+      }
 
-  if (!conversation.messages || conversation.messages.length === 0) {
-    return 0;
-  }
+      // If the last message is from the current user, no unread messages
+      if (conversation.lastMessage.senderId === currentUser.id) {
+        return 0;
+      }
 
-  // Default lastSeen to very old if not set
-  const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
+      // If last message timestamp is after last seen, there's at least 1 unread
+      const lastMessageTime = new Date(conversation.lastMessage.timestamp).getTime();
+      const lastSeenTime = new Date(lastSeen).getTime();
+      
+      if (lastMessageTime > lastSeenTime) {
+        return Math.max(1, unreadCounts[conversationId] || 1);
+      }
 
-  // Count messages from other users newer than lastSeen
-  const unread = conversation.messages.filter(
-    (msg) =>
-      msg.senderId !== currentUser.id &&
-      new Date(msg.createdAt).getTime() > lastSeenTime
-  ).length;
-
-  return unread;
-};
+      return 0;
+    };
+  
 
 
     // Auto-create conversation with target user
