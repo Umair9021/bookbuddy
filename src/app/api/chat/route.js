@@ -58,63 +58,60 @@
 // }
 
 
-import Ably from 'ably';             // ✅ use root import
+
+import Ably from 'ably';
 import dbConnect from '@/lib/db';
 import Conversation from '@/models/Conversation';
 import Message from '@/models/Message';
 
-// Create Ably client
-const ably = new Ably.Realtime({ key: process.env.ABLY_API_KEY });
+const ably = new Ably.Realtime(process.env.ABLY_API_KEY);
 
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      await dbConnect();
+export async function POST(request) {
+  try {
+    await dbConnect();
 
-      const { conversationId, senderId, content, messageType = 'text' } = req.body;
+    const { conversationId, senderId, content, messageType = 'text' } = await request.json();
 
-      // Save to MongoDB
-      const message = await Message.create({
-        conversationId,
-        senderId,
-        content,
-        messageType
-      });
+    // Save to MongoDB
+    const message = await Message.create({
+      conversationId,
+      senderId,
+      content,
+      messageType
+    });
 
-      // Get conversation details
-      const conversation = await Conversation.findById(conversationId)
-        .populate('participants', 'name dp');
+    // Get conversation details
+    const conversation = await Conversation.findById(conversationId)
+      .populate('participants', 'name dp');
 
-      // Update conversation last message
-      await Conversation.findByIdAndUpdate(conversationId, {
-        'lastMessage.content': content,
-        'lastMessage.senderId': senderId,
-        'lastMessage.timestamp': new Date(),
-        'lastMessage.messageType': messageType
-      });
+    // Update conversation last message
+    await Conversation.findByIdAndUpdate(conversationId, {
+      'lastMessage.content': content,
+      'lastMessage.senderId': senderId,
+      'lastMessage.timestamp': new Date(),
+      'lastMessage.messageType': messageType
+    });
 
-      // Get sender details
-      const populatedMessage = await Message.findById(message._id)
-        .populate('senderId', 'name dp');
+    // Get sender details
+    const populatedMessage = await Message.findById(message._id)
+      .populate('senderId', 'name dp');
 
-      // Publish via Ably for real-time
-      const channel = ably.channels.get(`chat-${conversationId}`);
-      await channel.publish('message', {
-        _id: message._id,
-        conversationId,
-        senderId,
-        senderName: populatedMessage.senderId.name,
-        senderDp: populatedMessage.senderId.dp,
-        content,
-        messageType,
-        createdAt: message.createdAt
-      });
+    // Send via Ably for real-time
+    const channel = ably.channels.get(`chat-${conversationId}`);
+    await channel.publish('message', {
+      _id: message._id,
+      conversationId,
+      senderId,
+      senderName: populatedMessage.senderId.name,
+      senderDp: populatedMessage.senderId.dp,
+      content,
+      messageType,
+      createdAt: message.createdAt
+    });
 
-      res.status(201).json({ success: true, message: populatedMessage });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  } else {
-    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return Response.json({ success: true, message: populatedMessage }, { status: 201 });
+  } catch (error) {
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
