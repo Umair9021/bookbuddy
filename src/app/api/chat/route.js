@@ -124,9 +124,6 @@ import dbConnect from "@/lib/db";
 import Conversation from "@/models/Conversation";
 import Message from "@/models/Message";
 
-
-import Ably from "ably";
-
 export async function GET() {
   if (!process.env.ABLY_API_KEY) {
     console.error("ABLY_API_KEY is missing!");
