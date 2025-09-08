@@ -2824,75 +2824,188 @@ const ChatBoard = () => {
   //   }
   // };
 
-  const handleSendMessage = async () => {
+//   const handleSendMessage = async () => {
+//   if (!message.trim() || !selectedConversation || sending) return;
+
+//   setSending(true);
+
+//   const tempMessage = {
+//     _id: 'temp-' + Date.now(),
+//     content: message,
+//     senderId: {
+//       _id: currentUser.id,
+//       name: currentUser.user_metadata?.full_name || 'You',
+//       dp: currentUser.user_metadata?.avatar_url || ''
+//     },
+//     createdAt: new Date().toISOString(),
+//     messageType: 'text'
+//   };
+
+//   // Add message optimistically
+//   setMessages(prev => [...prev, tempMessage]);
+//   const messageText = message;
+//   setMessage('');
+
+//   try {
+//     const response = await fetch('/api/chat/send', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({
+//         conversationId: selectedConversation._id,
+//         senderId: currentUser.id,
+//         content: messageText,
+//         messageType: 'text'
+//       })
+//     });
+
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+//     }
+
+//     const data = await response.json();
+
+//     if (data.success) {
+//       // Replace temp message with real one
+//       setMessages(prev => prev.map(msg =>
+//         msg._id === tempMessage._id ? data.message : msg
+//       ));
+
+//       // Update conversation in list
+//       setConversations(prev => prev.map(conv =>
+//         conv._id === selectedConversation._id
+//           ? {
+//               ...conv,
+//               lastMessage: {
+//                 content: messageText,
+//                 timestamp: new Date(),
+//                 senderId: currentUser.id
+//               }
+//             }
+//           : conv
+//       ));
+//     } else {
+//       throw new Error(data.error || 'Failed to send message');
+//     }
+//   } catch (error) {
+//     console.error('Error sending message:', error);
+//     // Remove temp message on error
+//     setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
+//     setMessage(messageText); // Restore message
+//     alert('Failed to send message. Please try again.');
+//   } finally {
+//     setSending(false);
+//   }
+// };
+
+
+const handleSendMessage = async () => {
   if (!message.trim() || !selectedConversation || sending) return;
+
+  // Check if Ably connection is still open
+  if (!ablyClient || ablyClient.connection.state !== "connected") {
+    setAblyError("Connection lost. Please try again.");
+    return;
+  }
 
   setSending(true);
 
   const tempMessage = {
-    _id: 'temp-' + Date.now(),
+    _id: "temp-" + Date.now(),
     content: message,
     senderId: {
       _id: currentUser.id,
-      name: currentUser.user_metadata?.full_name || 'You',
-      dp: currentUser.user_metadata?.avatar_url || ''
+      name: currentUser.user_metadata?.full_name || "You",
+      dp: currentUser.user_metadata?.avatar_url || "",
     },
     createdAt: new Date().toISOString(),
-    messageType: 'text'
+    messageType: "text",
   };
 
-  // Add message optimistically
-  setMessages(prev => [...prev, tempMessage]);
+  // Add optimistic message
+  setMessages((prev) => [...prev, tempMessage]);
   const messageText = message;
-  setMessage('');
+  setMessage("");
 
   try {
-    const response = await fetch('/api/chat/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/chat/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         conversationId: selectedConversation._id,
         senderId: currentUser.id,
         content: messageText,
-        messageType: 'text'
-      })
+        messageType: "text",
+      }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
     }
 
     const data = await response.json();
 
     if (data.success) {
       // Replace temp message with real one
-      setMessages(prev => prev.map(msg =>
-        msg._id === tempMessage._id ? data.message : msg
-      ));
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempMessage._id ? data.message : msg))
+      );
 
       // Update conversation in list
-      setConversations(prev => prev.map(conv =>
-        conv._id === selectedConversation._id
-          ? {
-              ...conv,
-              lastMessage: {
-                content: messageText,
-                timestamp: new Date(),
-                senderId: currentUser.id
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv._id === selectedConversation._id
+            ? {
+                ...conv,
+                lastMessage: {
+                  content: messageText,
+                  timestamp: new Date(),
+                  senderId: currentUser.id,
+                },
               }
+            : conv
+        )
+      );
+
+      // ✅ Publish to Ably channel (no await in latest SDK)
+      if (ablyChannel && ablyClient.connection.state === "connected") {
+        ablyChannel.publish(
+          "message",
+          {
+            _id: data.message._id,
+            conversationId: data.message.conversationId,
+            senderId: data.message.senderId._id,
+            senderName: data.message.senderId.name,
+            senderDp: data.message.senderId.dp,
+            content: data.message.content,
+            messageType: data.message.messageType,
+            createdAt: data.message.createdAt,
+          },
+          (err) => {
+            if (err) {
+              console.error("Failed to publish to Ably:", err);
             }
-          : conv
-      ));
+          }
+        );
+      }
+
+      console.log("Sending message payload:", {
+        conversationId: selectedConversation._id,
+        senderId: currentUser.id,
+        content: messageText,
+      });
     } else {
-      throw new Error(data.error || 'Failed to send message');
+      throw new Error(data.error || "Failed to send message");
     }
   } catch (error) {
-    console.error('Error sending message:', error);
-    // Remove temp message on error
-    setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
-    setMessage(messageText); // Restore message
-    alert('Failed to send message. Please try again.');
+    console.error("Error sending message:", error);
+    // rollback optimistic message
+    setMessages((prev) => prev.filter((msg) => msg._id !== tempMessage._id));
+    setMessage(messageText); // restore unsent
+    alert("Failed to send message. Please try again.");
   } finally {
     setSending(false);
   }
