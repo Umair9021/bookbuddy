@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
+  console.log("ABLY_API_KEY length:", process.env.ABLY_API_KEY?.length);
+
   try {
     const ablyApiKey = process.env.ABLY_API_KEY;
     
