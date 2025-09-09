@@ -59,153 +59,154 @@
 
 
 
-// import Ably from 'ably';
-// import dbConnect from '@/lib/db';
-// import Conversation from '@/models/Conversation';
-// import Message from '@/models/Message';
+import Ably from 'ably';
+import dbConnect from '@/lib/db';
+import Conversation from '@/models/Conversation';
+import Message from '@/models/Message';
 
-// const ably = new Ably.Realtime(process.env.ABLY_API_KEY);
-
-// export async function POST(request) {
-//   try {
-//     await dbConnect();
-
-//     const { conversationId, senderId, content, messageType = 'text' } = await request.json();
-
-//     // Save to MongoDB
-//     const message = await Message.create({
-//       conversationId,
-//       senderId,
-//       content,
-//       messageType
-//     });
-
-//     // Get conversation details
-//     const conversation = await Conversation.findById(conversationId)
-//       .populate('participants', 'name dp');
-
-//     // Update conversation last message
-//     await Conversation.findByIdAndUpdate(conversationId, {
-//       'lastMessage.content': content,
-//       'lastMessage.senderId': senderId,
-//       'lastMessage.timestamp': new Date(),
-//       'lastMessage.messageType': messageType
-//     });
-
-//     // Get sender details
-//     const populatedMessage = await Message.findById(message._id)
-//       .populate('senderId', 'name dp');
-
-//     // Send via Ably for real-time
-//     const channel = ably.channels.get(`chat-${conversationId}`);
-//     await channel.publish('message', {
-//       _id: message._id,
-//       conversationId,
-//       senderId,
-//       senderName: populatedMessage.senderId.name,
-//       senderDp: populatedMessage.senderId.dp,
-//       content,
-//       messageType,
-//       createdAt: message.createdAt
-//     });
-
-//     return Response.json({ success: true, message: populatedMessage }, { status: 201 });
-//   } catch (error) {
-//     return Response.json({ success: false, error: error.message }, { status: 500 });
-//   }
-// }
-
-
-
-
-
-import Ably from "ably";
-import dbConnect from "@/lib/db";
-import Conversation from "@/models/Conversation";
-import Message from "@/models/Message";
-
-export async function GET() {
-  if (!process.env.ABLY_API_KEY) {
-    console.error("ABLY_API_KEY is missing!");
-    return Response.json({ error: "ABLY_API_KEY not configured" }, { status: 500 });
-  }
-
-  const client = new Ably.Rest(process.env.ABLY_API_KEY);
-  const tokenRequest = await client.auth.createTokenRequest({ clientId: "some-id" });
-
-  return Response.json(tokenRequest);
-}
+const ably = new Ably.Realtime(process.env.ABLY_API_KEY);
 
 export async function POST(request) {
   try {
     await dbConnect();
 
-    const { conversationId, senderId, content, messageType = "text" } =
-      await request.json();
+    const { conversationId, senderId, content, messageType = 'text' } = await request.json();
 
-
-    // Save message in MongoDB
+    // Save to MongoDB
     const message = await Message.create({
       conversationId,
       senderId,
       content,
-      messageType,
+      messageType
     });
 
-    // Get conversation details (with participants)
+    // Get conversation details
     const conversation = await Conversation.findById(conversationId)
-      .populate("participants", "name dp");
+      .populate('participants', 'name dp');
 
     // Update conversation last message
     await Conversation.findByIdAndUpdate(conversationId, {
-      "lastMessage.content": content,
-      "lastMessage.senderId": senderId,
-      "lastMessage.timestamp": new Date(),
-      "lastMessage.messageType": messageType,
+      'lastMessage.content': content,
+      'lastMessage.senderId': senderId,
+      'lastMessage.timestamp': new Date(),
+      'lastMessage.messageType': messageType
     });
 
     // Get sender details
-    const populatedMessage = await Message.findById(message._id).populate(
-      "senderId",
-      "name dp"
-    );
+    const populatedMessage = await Message.findById(message._id)
+      .populate('senderId', 'name dp');
 
-    console.log("🔑 ABLY key in Vercel?", process.env.ABLY_API_KEY?.slice(0, 8));
-
-
-    console.log("Running on", process.env.VERCEL ? "Vercel" : "Local");
-console.log("ABLY_API_KEY exists?", !!process.env.ABLY_API_KEY);
-
-
-    // ✅ Initialize Ably (server-side safe)
-    const ably = new Ably.Rest(process.env.ABLY_API_KEY);
-
-    // Publish to the chat channel
+    // Send via Ably for real-time
     const channel = ably.channels.get(`chat-${conversationId}`);
-    await channel.publish("message", {
-      _id: populatedMessage._id,
+    await channel.publish('message', {
+      _id: message._id,
       conversationId,
       senderId,
       senderName: populatedMessage.senderId.name,
       senderDp: populatedMessage.senderId.dp,
       content,
       messageType,
-      createdAt: populatedMessage.createdAt,
+      createdAt: message.createdAt
     });
 
-    // Send response back
-    return Response.json(
-      { success: true, message: populatedMessage, conversation },
-      { status: 201 }
-    );
+    return Response.json({ success: true, message: populatedMessage }, { status: 201 });
   } catch (error) {
-    console.error("Ably/Chat Error:", error);
-    return Response.json(
-      { success: false, error: error.message },
-      { status: 500 }
-    );
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+
+
+
+//newcode
+
+// import Ably from "ably";
+// import dbConnect from "@/lib/db";
+// import Conversation from "@/models/Conversation";
+// import Message from "@/models/Message";
+
+// export async function GET() {
+//   if (!process.env.ABLY_API_KEY) {
+//     console.error("ABLY_API_KEY is missing!");
+//     return Response.json({ error: "ABLY_API_KEY not configured" }, { status: 500 });
+//   }
+
+//   const client = new Ably.Rest(process.env.ABLY_API_KEY);
+//   const tokenRequest = await client.auth.createTokenRequest({ clientId: "some-id" });
+
+//   return Response.json(tokenRequest);
+// }
+
+// export async function POST(request) {
+//   try {
+//     await dbConnect();
+
+//     const { conversationId, senderId, content, messageType = "text" } =
+//       await request.json();
+
+
+//     // Save message in MongoDB
+//     const message = await Message.create({
+//       conversationId,
+//       senderId,
+//       content,
+//       messageType,
+//     });
+
+//     // Get conversation details (with participants)
+//     const conversation = await Conversation.findById(conversationId)
+//       .populate("participants", "name dp");
+
+//     // Update conversation last message
+//     await Conversation.findByIdAndUpdate(conversationId, {
+//       "lastMessage.content": content,
+//       "lastMessage.senderId": senderId,
+//       "lastMessage.timestamp": new Date(),
+//       "lastMessage.messageType": messageType,
+//     });
+
+//     // Get sender details
+//     const populatedMessage = await Message.findById(message._id).populate(
+//       "senderId",
+//       "name dp"
+//     );
+
+//     console.log("🔑 ABLY key in Vercel?", process.env.ABLY_API_KEY?.slice(0, 8));
+
+
+//     console.log("Running on", process.env.VERCEL ? "Vercel" : "Local");
+// console.log("ABLY_API_KEY exists?", !!process.env.ABLY_API_KEY);
+
+
+//     // ✅ Initialize Ably (server-side safe)
+//     const ably = new Ably.Rest(process.env.ABLY_API_KEY);
+
+//     // Publish to the chat channel
+//     const channel = ably.channels.get(`chat-${conversationId}`);
+//     await channel.publish("message", {
+//       _id: populatedMessage._id,
+//       conversationId,
+//       senderId,
+//       senderName: populatedMessage.senderId.name,
+//       senderDp: populatedMessage.senderId.dp,
+//       content,
+//       messageType,
+//       createdAt: populatedMessage.createdAt,
+//     });
+
+//     // Send response back
+//     return Response.json(
+//       { success: true, message: populatedMessage, conversation },
+//       { status: 201 }
+//     );
+//   } catch (error) {
+//     console.error("Ably/Chat Error:", error);
+//     return Response.json(
+//       { success: false, error: error.message },
+//       { status: 500 }
+//     );
+//   }
+// }
 
 
 
