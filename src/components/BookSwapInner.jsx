@@ -14,6 +14,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import getImageSrc from '@/utils/getImageSrc';
+import { useChat } from '@/contexts/ChatContext';
 
 const BookSwapInner = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +28,25 @@ const BookSwapInner = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+
+  const { openChatWithUser } = useChat();
+
+  const handleContactSeller = (e, book) => {
+  e.stopPropagation(); // Prevent triggering the card click
+  
+  if (book.seller) {
+    // Open chat with the seller - ensure all required fields are included
+    openChatWithUser({
+      _id: book.seller._id || book.seller.id,
+      name: book.seller.name,
+      email: book.seller.email,
+      dp: book.seller.profilePicture || '',
+      major: book.seller.major || '',
+      collegeName: book.seller.collegeName || ''
+    }, true); // Second parameter true forces the chat to open
+  }
+};
 
   const ITEMS_PER_PAGE = 12;
   const searchParams = useSearchParams();
@@ -108,7 +128,6 @@ const BookSwapInner = () => {
         const response = await fetch('/api/books?select=all');
         if (response.ok) {
           const data = await response.json();
-          console.log('Fetched Books: ', data);
           setBooks(Array.isArray(data) ? data : []);
         } else {
           throw new Error(`Failed to fetch books: ${response.status} ${response.statusText}`);
@@ -475,7 +494,7 @@ const BookSwapInner = () => {
                   </Badge>
                 </div>
 
-                <CardContent className="p-4">
+                <CardContent className="p-4 pt-0">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900 line-clamp-2">{book.title}</h3>
                   {book.author && (
                     <p className="text-gray-600 mb-2">by {book.author}</p>
@@ -500,13 +519,9 @@ const BookSwapInner = () => {
                         ? 'bg-yellow-500 hover:bg-yellow-600'
                         : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
                       }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    onClick={(e) => handleContactSeller(e, book)}
                   >
-                    {book.status === 'Sold'
-                      ? 'Sold Out'
-                      : book.status === 'Reserved'
+                    {book.status === 'Reserved'
                         ? 'Reserved - Contact Seller'
                         : 'Contact Seller'}
                   </Button>

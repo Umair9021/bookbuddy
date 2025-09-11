@@ -6,6 +6,7 @@ import getImageSrc from '@/utils/getImageSrc';
 import { useChat } from '@/contexts/ChatContext';
 
 const BookDetailsModal = ({ isOpen, onClose, book }) => {
+
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const { openChatWithUser } = useChat();
 
@@ -19,9 +20,10 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
         setSelectedImageIndex(index);
     };
 
-     const handleContactSeller = () => {
+    const handleContactSeller = (e, book) => {
+        e.stopPropagation();
+
         if (book.seller) {
-            // Open chat with the seller
             openChatWithUser({
                 _id: book.seller._id || book.seller.id,
                 name: book.seller.name,
@@ -29,9 +31,9 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                 dp: book.seller.profilePicture || '',
                 major: book.seller.major || '',
                 collegeName: book.seller.collegeName || ''
-            });
+            }, true);
         }
-        onClose(); // Close the modal
+        onClose();
     };
 
     if (!book) return null;
@@ -154,18 +156,13 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                     Cancel
                                 </Button>
                                 <Button
-                                    className={`flex-1 text-white text-sm py-2 transition-all duration-200 ${book.status === 'Sold'
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : book.status === 'Reserved'
+                                    className={`flex-1 text-white text-sm py-2 transition-all duration-200 ${ book.status === 'Reserved'
                                             ? 'bg-yellow-500 hover:bg-yellow-600'
                                             : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
                                         }`}
-                                    disabled={book.status === 'Sold'}
-                                     onClick={handleContactSeller} 
+                                    onClick={(e) => handleContactSeller(e, book)}
                                 >
-                                    {book.status === 'Sold'
-                                        ? 'Sold Out'
-                                        : book.status === 'Reserved'
+                                    {book.status === 'Reserved'
                                             ? 'Reserved - Contact Seller'
                                             : 'Contact to Seller'}
                                 </Button>
@@ -273,19 +270,15 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                     Cancel
                                 </Button>
                                 <Button
-                                    className={`flex-1 text-white transition-all duration-200 order-1 sm:order-2 ${book.status === 'Sold'
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : book.status === 'Reserved'
+                                    className={`flex-1 text-white transition-all duration-200 order-1 sm:order-2 ${book.status === 'Reserved'
                                             ? 'bg-yellow-500 hover:bg-yellow-600'
                                             : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
                                         }`}
-                                    disabled={book.status === 'Sold'}
+                                    onClick={(e) => handleContactSeller(e, book)}
                                 >
-                                    {book.status === 'Sold'
-                                        ? 'Sold Out'
-                                        : book.status === 'Reserved'
-                                            ? 'Reserved - Contact Seller'
-                                            : 'Contact Seller'}
+                                    {book.status === 'Reserved'
+                                        ? 'Reserved - Contact Seller'
+                                        : 'Contact Seller'}
                                 </Button>
                             </div>
                         </div>

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const userSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
-  email: { type: String, unique: true, required: true , immutable: true},  // Makes email unchangeable after creation
+  email: { type: String, unique: true, required: true , immutable: true},
   dp: { type: String, default: '' },
    role: {
     type: String,
