@@ -247,12 +247,6 @@ export default function Navbar() {
               Browse
             </Button>
             <Button
-              variant="ghost"
-              className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2 font-medium transition-all duration-200"
-            >
-              Sell Books
-            </Button>
-            <Button
               onClick={handleHowItWorks}
               variant="ghost"
               className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-4 py-2 font-medium transition-all duration-200"
@@ -430,15 +424,6 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 Browse
-              </button>
-
-              <button
-                className="w-full text-left px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-3 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                Sell Books
               </button>
 
               <button
