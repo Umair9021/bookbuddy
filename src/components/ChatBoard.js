@@ -47,18 +47,6 @@ const ChatBoard = () => {
   // Get chat context
   const { isChatOpen, setIsChatOpen, targetUser, shouldCreateConversation, autoOpenConversation, resetChatState } = useChat();
 
-  // Utility functions
-  const debounce = (func, wait) => {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  };
 
   const normalizeId = (id) => {
     if (!id) return '';
@@ -496,17 +484,8 @@ const ChatBoard = () => {
 
   // Create conversation
   const createConversation = async (otherUserId) => {
+
     try {
-      const currentConversations = conversationsRef.current;
-      const alreadyExists = currentConversations.find(conv => {
-        return conv.participants.some(p => normalizeId(p._id) === normalizeId(otherUserId));
-      });
-
-      if (alreadyExists) {
-        handleConversationSelect(alreadyExists);
-        return;
-      }
-
       const response = await fetch('/api/chat/conversation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -545,9 +524,13 @@ const ChatBoard = () => {
     setupAblyChannel(conversation._id);
     updatePresenceStatus('in_conversation');
 
-    const otherParticipant = conversation.participants.find(p => p._id !== currentUser.id);
+    const otherParticipant = conversation.participants.find(p => {
+      return String(p._id || p.id) !== String(currentUser.id) &&
+        p.email !== currentUser.email;
+    });
+
+
     setSelectedContact(otherParticipant);
-    resetChatState();
   };
 
   // Handle back to contacts
@@ -673,21 +656,26 @@ const ChatBoard = () => {
       setIsAutoOpening(true);
       const currentConversations = conversationsRef.current;
       const existingConversation = currentConversations.find(conv => {
-        return conv.participants.some(p => String(p._id) === String(user._id));
+        return conv.participants.some(p => {
+          return p.email === user.email;
+        });
       });
+
 
       if (existingConversation) {
         handleConversationSelect(existingConversation);
       } else {
+
         await createConversation(user._id);
       }
     } catch (error) {
       console.error('Error auto-opening conversation:', error);
     } finally {
-      resetChatState();
       setIsAutoOpening(false);
     }
   };
+
+
 
   // Handle new chat selection
   const handleNewChatSelect = async (user) => {
@@ -748,10 +736,11 @@ const ChatBoard = () => {
   }, [isChatOpen]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen && !autoOpenConversation) {
       resetChatState();
     }
-  }, [isOpen, resetChatState]);
+  }, [isOpen, autoOpenConversation, resetChatState]);
+
 
   useEffect(() => {
     if (isOpen && autoOpenConversation && currentUser && !isAutoOpening) {

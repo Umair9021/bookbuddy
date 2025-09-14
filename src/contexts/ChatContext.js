@@ -17,33 +17,18 @@ export const ChatProvider = ({ children }) => {
   const [shouldCreateConversation, setShouldCreateConversation] = useState(false);
   const [autoOpenConversation, setAutoOpenConversation] = useState(null);
 
+  // ✅ Open chat with a specific user
   const openChatWithUser = (user, forceOpen = false) => {
-  setTargetUser(user);
-  setShouldCreateConversation(true);
-  setAutoOpenConversation(user);
-  
-  // Force the chat to open even if it's already open
-  if (forceOpen) {
-    // Close and immediately reopen the chat to trigger the auto-open logic
-    setIsChatOpen(false);
-    
-    // Use a timeout to ensure the close completes before reopening
-    setTimeout(() => {
+    setTargetUser(user);
+    setShouldCreateConversation(true);
+    setAutoOpenConversation(user);
+
+    if (forceOpen) {
+      setIsChatOpen(true); 
+    } else {
       setIsChatOpen(true);
-      
-      // Additional force refresh for the chat board component
-      if (typeof window !== 'undefined') {
-        // Dispatch a custom event that ChatBoard can listen for
-        window.dispatchEvent(new CustomEvent('chatForceOpen', { 
-          detail: { user } 
-        }));
-      }
-    }, 100);
-  } else {
-    // Normal behavior
-    setIsChatOpen(true);
-  }
-};
+    }
+  };
 
   const resetChatState = () => {
     setTargetUser(null);
@@ -52,15 +37,17 @@ export const ChatProvider = ({ children }) => {
   };
 
   return (
-    <ChatContext.Provider value={{
-      isChatOpen,
-      setIsChatOpen,
-      targetUser,
-      shouldCreateConversation,
-      autoOpenConversation,
-      openChatWithUser,
-      resetChatState
-    }}>
+    <ChatContext.Provider
+      value={{
+        isChatOpen,
+        setIsChatOpen,
+        targetUser,
+        shouldCreateConversation,
+        autoOpenConversation,
+        openChatWithUser,
+        resetChatState,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );

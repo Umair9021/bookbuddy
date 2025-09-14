@@ -197,7 +197,7 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="mt-6 grid grid-cols-1 gap-3">
               <OAuthButton/>
             </div>
           </div>

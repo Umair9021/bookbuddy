@@ -4,10 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import getImageSrc from '@/utils/getImageSrc';
 import { useChat } from '@/contexts/ChatContext';
+import { useAuth } from "@/components/AuthProvider";
+import InfoModal from "@/components/InfoModal";
 
 const BookDetailsModal = ({ isOpen, onClose, book }) => {
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [selfChatOpen, setSelfChatOpen] = useState(false);
+    const { user } = useAuth();
     const { openChatWithUser } = useChat();
 
     React.useEffect(() => {
@@ -24,6 +28,10 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
         e.stopPropagation();
 
         if (book.seller) {
+            if (user && (user.id === book.seller._id || user.email === book.seller.email)) {
+                setSelfChatOpen(true);
+                return;
+            }
             openChatWithUser({
                 _id: book.seller._id || book.seller.id,
                 name: book.seller.name,
@@ -156,15 +164,15 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                     Cancel
                                 </Button>
                                 <Button
-                                    className={`flex-1 text-white text-sm py-2 transition-all duration-200 ${ book.status === 'Reserved'
-                                            ? 'bg-yellow-500 hover:bg-yellow-600'
-                                            : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+                                    className={`flex-1 text-white text-sm py-2 transition-all duration-200 ${book.status === 'Reserved'
+                                        ? 'bg-yellow-500 hover:bg-yellow-600'
+                                        : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
                                         }`}
                                     onClick={(e) => handleContactSeller(e, book)}
                                 >
                                     {book.status === 'Reserved'
-                                            ? 'Reserved - Contact Seller'
-                                            : 'Contact to Seller'}
+                                        ? 'Reserved - Contact Seller'
+                                        : 'Contact to Seller'}
                                 </Button>
                             </div>
                         </div>
@@ -271,8 +279,8 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                 </Button>
                                 <Button
                                     className={`flex-1 text-white transition-all duration-200 order-1 sm:order-2 ${book.status === 'Reserved'
-                                            ? 'bg-yellow-500 hover:bg-yellow-600'
-                                            : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+                                        ? 'bg-yellow-500 hover:bg-yellow-600'
+                                        : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
                                         }`}
                                     onClick={(e) => handleContactSeller(e, book)}
                                 >
@@ -284,6 +292,12 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                         </div>
                     </div>
                 </div>
+                 <InfoModal
+                        open={selfChatOpen}
+                        onClose={() => setSelfChatOpen(false)}
+                        title="Notice"
+                        message="You cannot chat with yourself."
+                      />
             </DialogContent>
         </Dialog>
     );

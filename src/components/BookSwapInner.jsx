@@ -15,6 +15,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import getImageSrc from '@/utils/getImageSrc';
 import { useChat } from '@/contexts/ChatContext';
+import { useAuth } from "@/components/AuthProvider";
+import InfoModal from "@/components/InfoModal";
+
 
 const BookSwapInner = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,25 +31,30 @@ const BookSwapInner = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selfChatOpen, setSelfChatOpen] = useState(false);
+  const { user } = useAuth();
 
 
   const { openChatWithUser } = useChat();
 
   const handleContactSeller = (e, book) => {
-  e.stopPropagation(); // Prevent triggering the card click
-  
-  if (book.seller) {
-    // Open chat with the seller - ensure all required fields are included
-    openChatWithUser({
-      _id: book.seller._id || book.seller.id,
-      name: book.seller.name,
-      email: book.seller.email,
-      dp: book.seller.profilePicture || '',
-      major: book.seller.major || '',
-      collegeName: book.seller.collegeName || ''
-    }, true); // Second parameter true forces the chat to open
-  }
-};
+    e.stopPropagation(); 
+
+    if (book.seller) {
+      if (user && (user.id === book.seller._id || user.email === book.seller.email)) {
+        setSelfChatOpen(true);
+        return;
+      }
+      openChatWithUser({
+        _id: book.seller._id || book.seller.id,
+        name: book.seller.name,
+        email: book.seller.email,
+        dp: book.seller.profilePicture || '',
+        major: book.seller.major || '',
+        collegeName: book.seller.collegeName || ''
+      }, true); // Second parameter true forces the chat to open
+    }
+  };
 
   const ITEMS_PER_PAGE = 12;
   const searchParams = useSearchParams();
@@ -349,6 +357,7 @@ const BookSwapInner = () => {
     );
   }
 
+
   const hasActiveFilters = selectedYear !== 'All' || selecteddepartment !== 'All' || selectedCondition !== 'All' || searchQuery.trim();
   return (
     <div className="min-h-screen bg-gray-50">
@@ -476,7 +485,7 @@ const BookSwapInner = () => {
             {currentBooks.map((book) => (
               <Card
                 key={book._id}
-                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                className="overflow-hidden hover:shadow-lg transition-shadow py-1 cursor-pointer"
                 onClick={(e) => handleBookClick(e, book)}
               >
                 <div className="relative h-64 group">
@@ -513,7 +522,7 @@ const BookSwapInner = () => {
                   </div>
 
                   <Button
-                    className={`w-full text-white transition-all duration-200 ${book.status === 'Sold'
+                    className={`w-full text-white transition-all cursor-pointer duration-200 ${book.status === 'Sold'
                       ? 'bg-gray-400 cursor-not-allowed'
                       : book.status === 'Reserved'
                         ? 'bg-yellow-500 hover:bg-yellow-600'
@@ -522,8 +531,8 @@ const BookSwapInner = () => {
                     onClick={(e) => handleContactSeller(e, book)}
                   >
                     {book.status === 'Reserved'
-                        ? 'Reserved - Contact Seller'
-                        : 'Contact Seller'}
+                      ? 'Reserved - Contact Seller'
+                      : 'Contact Seller'}
                   </Button>
                 </CardContent>
               </Card>
@@ -582,6 +591,13 @@ const BookSwapInner = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         book={selectedBook}
+      />
+
+      <InfoModal
+        open={selfChatOpen}
+        onClose={() => setSelfChatOpen(false)}
+        title="Notice"
+        message="You cannot chat with yourself."
       />
 
       <Footer />
