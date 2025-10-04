@@ -24,6 +24,20 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
         setSelectedImageIndex(index);
     };
 
+    const handlePrev = (e) => {
+        if (e) e.stopPropagation();
+        const total = book?.pictures?.length || 0;
+        if (total <= 1) return;
+        setSelectedImageIndex((prev) => (prev - 1 + total) % total);
+    };
+
+    const handleNext = (e) => {
+        if (e) e.stopPropagation();
+        const total = book?.pictures?.length || 0;
+        if (total <= 1) return;
+        setSelectedImageIndex((prev) => (prev + 1) % total);
+    };
+
     const handleContactSeller = (e, book) => {
         e.stopPropagation();
 
@@ -63,21 +77,47 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                     <div className="block lg:hidden space-y-4">
                         {/* Mobile Image Section */}
                         <div className="space-y-3">
-                            <div className="relative h-64 rounded-lg overflow-hidden">
-                                <div className="h-full w-full bg-white rounded-lg overflow-hidden">
+                            <div className="relative h-45 rounded-lg overflow-hidden">
+                                <div className="h-53 bg-white rounded-lg overflow-hidden">
                                     <img
                                         src={getImageSrc(book.pictures?.[selectedImageIndex] || book.pictures?.[0] || "")}
                                         alt={book.title}
-                                        className="h-full w-full object-cover"
+                                        className="max-h-full w-full object-center bg-gray-100"
                                         onError={(e) => {
                                             e.target.src = '/placeholder-book.jpg';
                                         }}
                                     />
                                 </div>
+
+                                {book.pictures && book.pictures.length > 1 && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            aria-label="Previous image"
+                                            onClick={handlePrev}
+                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 focus:outline-none"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            aria-label="Next image"
+                                            onClick={handleNext}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 focus:outline-none"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </>
+                                )}
                             </div>
 
                             {/* Mobile Thumbnail Images */}
-                            {book.pictures && book.pictures.length > 1 && (
+                            {/* {book.pictures && book.pictures.length > 1 && (
                                 <div className="flex space-x-2 justify-center overflow-x-auto pb-1">
                                     {book.pictures.slice(0, 3).map((picture, index) => (
                                         <div
@@ -101,21 +141,21 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                         </div>
                                     ))}
                                 </div>
-                            )}
+                            )} */}
                         </div>
 
                         {/* Mobile Book Details */}
                         <div className="space-y-4">
                             <div>
-                                <h1 className="text-xl font-bold text-gray-900 mb-1">{book.title}</h1>
+                                <h1 className="text-xl font-bold text-gray-900 mb-1 pl-1">{book.title}</h1>
                                 {book.author && (
                                     <p className="text-sm text-gray-600">by {book.author}</p>
                                 )}
                             </div>
 
                             {/* Mobile Info Grid */}
-                            <div className="flex flex-row justify-between">
-                                <div className="flex flex-col justify-start gap-5">
+                            <div className="flex flex-row justify-between pl-1">
+                                <div className="flex flex-col justify-start gap-2">
                                     <div>
                                         <p className="text-xs text-gray-500">Price:</p>
                                         <p className="text-lg font-bold text-green-600">Rs. {book.price}</p>
@@ -126,7 +166,7 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col justify-start gap-5 mr-15">
+                                <div className="flex flex-col justify-start gap-2 mr-15">
                                     <div>
                                         <p className="text-xs text-gray-500 mb-1">Condition:</p>
                                         <p className="text-sm font-medium text-gray-900 mr-10 text-start">{book.condition}</p>
@@ -139,10 +179,10 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                             </div>
 
                             {/* Mobile Description */}
-                            <div>
-                                <p className="text-sm text-gray-500 mb-2">Description:</p>
+                            <div className='pl-1'>
+                                <p className="text-sm text-gray-500 mb-1">Description:</p>
                                 <div
-                                    className="bg-white border p-4 rounded-lg text-gray-700 leading-relaxed  overflow-y-auto overscroll-contain h-28 sm:h-36 md:h-44 lg:h-25"
+                                    className="bg-white border p-2 pl-3 pr-3 w-77 rounded-lg text-gray-700 leading-relaxed overflow-y-auto overscroll-contain h-15 sm:h-15 md:h-20 lg:h-15"
                                     style={{
                                         WebkitOverflowScrolling: 'touch',
                                         overflowX: 'hidden',
@@ -156,7 +196,7 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                             </div>
 
                             {/* Mobile Buttons */}
-                            <div className="flex space-x-3 pt-2">
+                            <div className="flex space-x-3 pt-2 pl-1">
                                 <Button
                                     className="bg-gray-300 text-gray-700 px-4 py-2 text-sm hover:bg-gray-400 transition-colors"
                                     onClick={onClose}
@@ -182,7 +222,7 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                     <div className="hidden lg:grid lg:grid-cols-2 gap-6 sm:gap-8">
                         {/* Left Column - Images */}
                         <div className="space-y-4 order-1 lg:order-1">
-                            <div className="relative h-64 sm:h-80 rounded-lg overflow-hidden">
+                            <div className="relative h-full sm:h-full sm:max-h-90 rounded-lg overflow-hidden">
                                 <div className="h-full w-full bg-white rounded-lg overflow-hidden">
                                     <img
                                         src={getImageSrc(book.pictures?.[selectedImageIndex] || book.pictures?.[0] || "")}
@@ -193,10 +233,36 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                         }}
                                     />
                                 </div>
+
+                                {book.pictures && book.pictures.length > 1 && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            aria-label="Previous image"
+                                            onClick={handlePrev}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 focus:outline-none"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            aria-label="Next image"
+                                            onClick={handleNext}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 focus:outline-none"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </>
+                                )}
                             </div>
 
                             {/* Thumbnail Images */}
-                            {book.pictures && book.pictures.length > 1 && (
+                            {/* {book.pictures && book.pictures.length > 1 && (
                                 <div className="flex space-x-2 sm:space-x-3 justify-center items-center overflow-x-auto pb-2">
                                     {book.pictures.slice(0, 3).map((picture, index) => (
                                         <div
@@ -220,13 +286,13 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                         </div>
                                     ))}
                                 </div>
-                            )}
+                            )} */}
                         </div>
 
                         {/* Right Column - Book Details */}
                         <div className="space-y-4 sm:space-y-6 order-2 lg:order-2 w-full lg:w-80">
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{book.title}</h1>
+                                <h1 className="text-2xl sm:text-1xl font-bold text-gray-900 mb-2">{book.title}</h1>
                                 {book.author && (
                                     <p className="text-lg sm:text-xl text-gray-600">by {book.author}</p>
                                 )}
@@ -257,7 +323,7 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                             <div>
                                 <p className="text-sm text-gray-500 mb-2">Description:</p>
                                 <div
-                                    className="bg-white border p-4 rounded-lg text-gray-700 leading-relaxed  overflow-y-auto overscroll-contain h-28 sm:h-36 md:h-44 lg:h-25"
+                                    className="bg-white border p-1 pl-2  rounded-lg text-gray-700 leading-relaxed  overflow-y-auto overscroll-contain h-10 sm:h-20 md:h-20 lg:h-15"
                                     style={{
                                         WebkitOverflowScrolling: 'touch',
                                         overflowX: 'hidden',
