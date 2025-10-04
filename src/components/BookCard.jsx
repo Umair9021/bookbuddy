@@ -12,14 +12,14 @@ export default function BookCard({ book }) {
         <img
           src={getImageSrc(book.imageUrl)}
           alt={book.title}
-          className="rounded-md object-cover h-48 w-full"
+          className="rounded-md object-cover h-40 w-full"
         />
       </CardHeader>
 
       <CardContent>
         <CardTitle className="text-lg font-semibold">{book.title}</CardTitle>
         <p className="text-sm text-muted-foreground">Seller: {book.sellerName}</p>
-        <p className="text-md font-medium mt-1">₹ {book.price}</p>
+        <p className="text-md font-medium mt-1">Rs.{book.price}</p>
       </CardContent>
 
       <CardFooter className="justify-end">

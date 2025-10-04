@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import getImageSrc from '@/utils/getImageSrc';
@@ -11,6 +11,17 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
 
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [selfChatOpen, setSelfChatOpen] = useState(false);
+    // Refs for touch/swipe support on mobile
+    const touchStartX = useRef(null);
+    const touchCurrentX = useRef(null);
+    const touchStartTime = useRef(null);
+    const isSwiping = useRef(false);
+    const selectedImageRef = useRef(null);
+    const indicatorTimeoutRef = useRef(null);
+
+    // Local state for UI affordances
+    const [isDraggingState, setIsDraggingState] = useState(false);
+    const [showIndicators, setShowIndicators] = useState(false);
     const { user } = useAuth();
     const { openChatWithUser } = useChat();
 
@@ -18,6 +29,22 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
         if (isOpen && book) {
             setSelectedImageIndex(0);
         }
+    }, [isOpen, book]);
+
+    // Keyboard navigation (left/right arrows) when dialog is open
+    React.useEffect(() => {
+        if (!isOpen) return;
+        const onKeyDown = (e) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                handlePrev();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                handleNext();
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
     }, [isOpen, book]);
 
     const handleThumbnailClick = (index) => {
@@ -36,6 +63,83 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
         const total = book?.pictures?.length || 0;
         if (total <= 1) return;
         setSelectedImageIndex((prev) => (prev + 1) % total);
+    };
+
+    // Touch handlers for mobile swipe
+    const onTouchStart = (e) => {
+        if (!book?.pictures || book.pictures.length <= 1) return;
+        // show indicators while interacting
+        setShowIndicators(true);
+        if (indicatorTimeoutRef.current) {
+            clearTimeout(indicatorTimeoutRef.current);
+            indicatorTimeoutRef.current = null;
+        }
+
+        touchStartX.current = e.touches[0].clientX;
+        touchCurrentX.current = touchStartX.current;
+        touchStartTime.current = Date.now();
+        isSwiping.current = true;
+        setIsDraggingState(true);
+
+        // disable transition while dragging
+        const el = selectedImageRef.current;
+        if (el) el.style.transition = 'none';
+    };
+
+    const onTouchMove = (e) => {
+        if (!isSwiping.current) return;
+        touchCurrentX.current = e.touches[0].clientX;
+        const dx = (touchCurrentX.current || 0) - (touchStartX.current || 0);
+        const el = selectedImageRef.current;
+        if (el) {
+            el.style.transform = `translateX(${dx}px)`;
+        }
+    };
+
+    const onTouchEnd = () => {
+        if (!isSwiping.current) return;
+        const dx = (touchCurrentX.current || 0) - (touchStartX.current || 0);
+        const dt = Math.max(1, Date.now() - (touchStartTime.current || Date.now()));
+        const velocity = Math.abs(dx) / dt; // px per ms
+
+        const distanceThreshold = 50; // px
+        const velocityThreshold = 0.35; // px/ms
+        const shouldSlide = Math.abs(dx) > distanceThreshold || velocity > velocityThreshold;
+
+        // restore transition and reset transform smoothly
+        const el = selectedImageRef.current;
+        if (el) el.style.transition = 'transform 200ms ease';
+
+        if (shouldSlide) {
+            if (dx > 0) {
+                handlePrev();
+            } else {
+                handleNext();
+            }
+        }
+
+        // snap back to zero (the image component will update after selectedImageIndex changes)
+        if (el) el.style.transform = `translateX(0px)`;
+
+        // cleanup after transition
+        setTimeout(() => {
+            if (el) {
+                el.style.transition = '';
+                el.style.transform = '';
+            }
+        }, 220);
+
+        // hide dragging state and schedule hiding indicators
+        setIsDraggingState(false);
+        isSwiping.current = false;
+        touchStartX.current = null;
+        touchCurrentX.current = null;
+        touchStartTime.current = null;
+
+        indicatorTimeoutRef.current = setTimeout(() => {
+            setShowIndicators(false);
+            indicatorTimeoutRef.current = null;
+        }, 900);
     };
 
     const handleContactSeller = (e, book) => {
@@ -77,12 +181,19 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                     <div className="block lg:hidden space-y-4">
                         {/* Mobile Image Section */}
                         <div className="space-y-3">
-                            <div className="relative h-45 rounded-lg overflow-hidden">
+                            <div
+                                className="relative h-45 rounded-lg overflow-hidden"
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEnd}
+                                style={{ touchAction: 'pan-y' }}
+                            >
                                 <div className="h-53 bg-white rounded-lg overflow-hidden">
                                     <img
+                                        ref={selectedImageRef}
                                         src={getImageSrc(book.pictures?.[selectedImageIndex] || book.pictures?.[0] || "")}
                                         alt={book.title}
-                                        className="max-h-full w-full object-center bg-gray-100"
+                                        className={`max-h-full w-full object-center bg-gray-100 transition-transform ${isDraggingState ? 'cursor-grabbing' : 'cursor-grab'}`}
                                         onError={(e) => {
                                             e.target.src = '/placeholder-book.jpg';
                                         }}
@@ -114,34 +225,16 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                         </button>
                                     </>
                                 )}
+                                {/* Dots / indicators for current image (appear briefly when interacting) */}
+                                {book.pictures && book.pictures.length > 1 && showIndicators && (
+                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-3 flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                                        {book.pictures.map((p, i) => (
+                                            <span key={i} className={`h-1.5 w-1.5 rounded-full ${i === selectedImageIndex ? 'bg-white' : 'bg-white/60'}`} />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Mobile Thumbnail Images */}
-                            {/* {book.pictures && book.pictures.length > 1 && (
-                                <div className="flex space-x-2 justify-center overflow-x-auto pb-1">
-                                    {book.pictures.slice(0, 3).map((picture, index) => (
-                                        <div
-                                            key={index}
-                                            className={`relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden cursor-pointer transition-all duration-200 ${selectedImageIndex === index
-                                                ? 'ring-2 ring-purple-600'
-                                                : 'hover:ring-2 hover:ring-purple-400'
-                                                }`}
-                                            onClick={() => handleThumbnailClick(index)}
-                                        >
-                                            <div className="h-full w-full bg-white rounded overflow-hidden">
-                                                <img
-                                                    src={getImageSrc(picture)}
-                                                    alt={`${book.title} ${index + 1}`}
-                                                    className="h-full w-full object-cover"
-                                                    onError={(e) => {
-                                                        e.target.src = '/placeholder-book.jpg';
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )} */}
                         </div>
 
                         {/* Mobile Book Details */}
@@ -260,33 +353,6 @@ const BookDetailsModal = ({ isOpen, onClose, book }) => {
                                     </>
                                 )}
                             </div>
-
-                            {/* Thumbnail Images */}
-                            {/* {book.pictures && book.pictures.length > 1 && (
-                                <div className="flex space-x-2 sm:space-x-3 justify-center items-center overflow-x-auto pb-2">
-                                    {book.pictures.slice(0, 3).map((picture, index) => (
-                                        <div
-                                            key={index}
-                                            className={`relative h-16 w-16 sm:h-18 sm:w-20 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${selectedImageIndex === index
-                                                ? 'ring-2 ring-purple-600'
-                                                : 'hover:ring-2 hover:ring-purple-400'
-                                                }`}
-                                            onClick={() => handleThumbnailClick(index)}
-                                        >
-                                            <div className="h-full w-full bg-white rounded overflow-hidden">
-                                                <img
-                                                    src={getImageSrc(picture)}
-                                                    alt={`${book.title} ${index + 1}`}
-                                                    className="h-full w-full object-cover"
-                                                    onError={(e) => {
-                                                        e.target.src = '/placeholder-book.jpg';
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )} */}
                         </div>
 
                         {/* Right Column - Book Details */}

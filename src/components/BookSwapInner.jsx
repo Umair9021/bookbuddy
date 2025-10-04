@@ -56,7 +56,7 @@ const BookSwapInner = () => {
     }
   };
 
-  const ITEMS_PER_PAGE = 12;
+  const ITEMS_PER_PAGE = 16;
   const searchParams = useSearchParams();
   const router = useRouter();
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
@@ -365,7 +365,7 @@ const BookSwapInner = () => {
       <Navbar />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-23">
         <h2 className="text-3xl font-bold text-slate-900 text-center mb-8">Browse Books</h2>
 
         {/* Search and Filters */}
@@ -481,14 +481,14 @@ const BookSwapInner = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-6">
             {currentBooks.map((book) => (
               <Card
                 key={book._id}
-                className="overflow-hidden hover:shadow-lg transition-shadow py-1 cursor-pointer"
+                className="overflow-hidden hover:shadow-lg transition-shadow pt-0 cursor-pointer"
                 onClick={(e) => handleBookClick(e, book)}
               >
-                <div className="relative h-64 group">
+                <div className="relative sm:h-50 h-40 group">
                   <img
                     alt={book.title || "Book cover"}
                     src={getImageSrc(book.pictures?.[0] || "")}
@@ -498,19 +498,16 @@ const BookSwapInner = () => {
                     }}
                   />
 
-                  <Badge className={`absolute top-3 right-3 ${getConditionBadgeStyle(book.status || book.condition)}`}>
+                  <Badge className={`absolute top-3 ms:right-3 right-1 ${getConditionBadgeStyle(book.status || book.condition)}`}>
                     {book.status || book.condition || 'Available'}
                   </Badge>
                 </div>
 
-                <CardContent className="p-4 pt-0">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900 line-clamp-2">{book.title}</h3>
-                  {book.author && (
-                    <p className="text-gray-600 mb-2">by {book.author}</p>
-                  )}
-                  <p className="text-2xl font-bold text-gray-900 mb-2">Rs. {book.price}</p>
+                <CardContent className="md:p-4 p-2 md:pt-1 pt-1">
+                  <h3 className="font-semibold md:text-lg text-sm md:mb-2 mb-1 text-gray-900 truncate w-full">{book.title}</h3>
+                  <p className="md:text-1xl text-sm text-gray-500 mb-1">Rs. {book.price}</p>
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between md:mb-3 mb-2">
                     <Badge className={getConditionBadgeStyle(book.condition)}>
                       {book.condition}
                     </Badge>
@@ -522,16 +519,14 @@ const BookSwapInner = () => {
                   </div>
 
                   <Button
-                    className={`w-full text-white transition-all cursor-pointer duration-200 ${book.status === 'Sold'
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : book.status === 'Reserved'
+                    className={`w-full text-white transition-all cursor-pointer duration-200 ${book.status === 'Reserved'
                         ? 'bg-yellow-500 hover:bg-yellow-600'
                         : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
                       }`}
                     onClick={(e) => handleContactSeller(e, book)}
                   >
                     {book.status === 'Reserved'
-                      ? 'Reserved - Contact Seller'
+                      ? 'Reserved'
                       : 'Contact Seller'}
                   </Button>
                 </CardContent>

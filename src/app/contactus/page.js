@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, Send, Mail, User, MessageSquare } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import {
   Form,
   FormField,
@@ -112,9 +113,9 @@ export default function ContactPage() {
 };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen">
       <Navbar />
-      <main className="flex items-center justify-center min-h-[calc(100vh-64px)] py-8 px-3 sm:px-6 bg-gray-100">
+      <main className="flex items-center justify-center min-h-[calc(100vh-64px)] pt-30 pb-15 px-3 sm:px-6 bg-gray-100">
         <div className="w-full max-w-[550px]">
           {submitSuccess && (
             <Alert className="mb-6 sm:mb-2 bg-green-50 border-green-200">
@@ -125,12 +126,12 @@ export default function ContactPage() {
             </Alert>
           )}
 
-          <Card className="bg-white border border-gray-200 shadow-lg">
-            <CardHeader className="text-center pb-4 bg-gradient-to-br from-blue-500 to-purple-500">
+          <Card className="bg-white border border-gray-200 shadow-lg pt-5">
+            <CardHeader className="text-center pb-4 bg-gradient-to-br mb-5 from-blue-500 to-purple-500">
               <CardTitle className="text-2xl sm:text-3xl font-bold text-white mb-1 mt-3">
                 Contact Us
               </CardTitle>
-              <CardDescription className="text-sm sm:text-sm text-slate-200 px-2">
+              <CardDescription className="text-sm sm:text-sm text-slate-200 md:px-2 px-1">
                 We'd love to hear from you. Send us a message and we'll respond as soon as possible.
               </CardDescription>
             </CardHeader>
@@ -296,6 +297,7 @@ export default function ContactPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

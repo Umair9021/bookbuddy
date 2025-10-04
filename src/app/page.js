@@ -8,6 +8,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { motion, AnimatePresence } from "framer-motion";
+import BackgroundCarousel from '@/components/BackgroundCarousel';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -23,6 +24,7 @@ import BookDetailsModal from '@/components/BookDetailsModal';
 
 const BookSwap = () => {
     const [activeYear, setActiveYear] = useState('First Year');
+    const [heroColor, setHeroColor] = useState(null);
     const [allBooks, setAllBooks] = useState([]);
     const [stats, setStats] = useState({
         booksAvailable: 0,
@@ -249,13 +251,14 @@ const BookSwap = () => {
     )
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen">
             {/* Header */}
             <Navbar />
 
             {/* Hero Section */}
-            <section className="bg-gradient-to-br from-blue-500 to-purple-600 text-white py-12 sm:py-16 lg:py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+            <section className="relative text-white py-22 sm:py-20 lg:py-40">
+                <BackgroundCarousel images={['/bg-carousel/bg1.jpeg','/bg-carousel/bg2.jpeg','/bg-carousel/bg3.jpeg']} interval={5000} transition={1400} onColorChange={(hex) => setHeroColor(hex)} />
+                <div className="max-w-7xl mx-auto px-4 pt-15 sm:px-6 text-center">
                     <motion.h1
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -269,21 +272,21 @@ const BookSwap = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row  justify-center space-y-2 sm:space-y-4 sm:space-x-4 mb-12 sm:mb-10 px-4">
-                        <Button className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-13 sm:ml-0 sm:w-auto"
+                        <Button
+                            className="text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-13 sm:ml-0 sm:w-auto"
                             onClick={() => router.push('browse')}
+                            style={heroColor ? { background: `linear-gradient(90deg, ${heroColor}, ${heroColor}80)` } : {}}
                         >
                             Browse Book
                         </Button>
                         <Button
-                            variant="outline"
-                            className="bg-gradient-to-br from-blue-500 to-blue-900 text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-13 sm:ml-0 sm:w-auto"
+                            className="text-white text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-full w-50 ml-13 sm:ml-0 sm:w-auto"
+                            style={heroColor ? { background: `linear-gradient(90deg, ${heroColor}66, ${heroColor})`, border: '1px solid rgba(255,255,255,0.12)' } : {}}
                         >
                             Sell Your Books
                         </Button>
                     </div>
-
-
-                    <Card className="bg-white/10 backdrop-blur-sm border-none max-w-6xl mx-auto mb-5">
+                    <Card className="bg-white/10 backdrop-blur-sm border-none max-w-6xl mx-auto mb-0">
                         <CardContent className="p-4 sm:p-6 lg:p-8">
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                                 <motion.div
