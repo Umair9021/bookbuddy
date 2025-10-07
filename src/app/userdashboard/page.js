@@ -810,7 +810,7 @@ const Dashboard = () => {
                             activeTab={activeTab}
                             setActiveTab={(tab) => {
                                 handleTabChange(tab);
-                                setMobileMenuOpen(false); // close sidebar after tab click
+                                setMobileMenuOpen(false); 
                             }}
                             handlemainpage={handlemainpage}
                             isMobile={true}

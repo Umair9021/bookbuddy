@@ -6,7 +6,7 @@ const OverviewPage =({ books, filteredBooks, dashboardStats })=> {
 
      const stats = dashboardStats ? [
             { title: 'Total Books', value: dashboardStats.totalBooks.toString(), icon: BookOpen, color: 'bg-blue-500' },
-            { title: 'Total Sales', value: `$${books.filter(book=> book.status=='Sold').reduce((total,book)=> total + book.price,0).toFixed(2)}`, icon: DollarSign, color: 'bg-green-500' },
+            { title: 'Total Sales', value: `Rs ${books.filter(book=> book.status=='Sold').reduce((total,book)=> total + book.price,0).toFixed(2)}`, icon: DollarSign, color: 'bg-green-500' },
             { title: 'Available Books', value:books.filter(book=>book.status=='Available').length.toString(), icon: ShoppingCart, color: 'bg-orange-500' },
             { title: 'Profile Views', value: dashboardStats.profileViews.toString(), icon: Eye, color: 'bg-purple-500' }
         ] : [];

@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, X, Send, MoreVertical, Phone, Video, Search, Smile, Paperclip, ArrowLeft, Users, Plus } from 'lucide-react';
+import { MessageCircle, X, Send, MoreVertical,ChevronLeft , Phone, Video, Search, Smile, Paperclip, ArrowLeft, Users, Plus } from 'lucide-react';
+import ConversationsList from './ChatBoard/ConversationsList';
+import ChatHeader from './ChatBoard/ChatHeader';
+import MessagesContainer from './ChatBoard/MessagesContainer';
+import MessageInput from './ChatBoard/MessageInput';
+import LightboxOverlay from './ChatBoard/LightboxOverlay';
 import { createClient } from '@supabase/supabase-js';
 import { useChat } from '@/contexts/ChatContext';
 
@@ -20,10 +25,85 @@ const ChatBoard = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const fileInputRef = useRef(null);
+  // Lightbox state for viewing images
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const touchStartLbX = useRef(null);
+  const touchCurrentLbX = useRef(null);
+  const isSwipingLb = useRef(false);
+  // Lightbox swipe refs (handlers inserted after messages state to avoid init order issues)
+  // Lightbox image animation state
+  const [animating, setAnimating] = useState(false);
+  const [prevLightboxIndex, setPrevLightboxIndex] = useState(null);
+  const [animateDirection, setAnimateDirection] = useState(0); // -1 prev, 1 next
 
   // Real data from backend
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
+  const imageMessages = React.useMemo(() => messages.filter(m => m.messageType === 'image'), [messages]);
+
+  const lbPrev = () => {
+    if (imageMessages.length === 0) return;
+    setAnimateDirection(-1);
+    setPrevLightboxIndex(lightboxIndex);
+    setAnimating(true);
+    setLightboxIndex(i => (i - 1 + imageMessages.length) % imageMessages.length);
+  };
+
+  const lbNext = () => {
+    if (imageMessages.length === 0) return;
+    setAnimateDirection(1);
+    setPrevLightboxIndex(lightboxIndex);
+    setAnimating(true);
+    setLightboxIndex(i => (i + 1) % imageMessages.length);
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowLeft') lbPrev();
+      if (e.key === 'ArrowRight') lbNext();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxOpen, imageMessages.length]);
+
+  // Touch handlers for lightbox
+  const onLightboxTouchStart = (e) => {
+    if (!e.touches || e.touches.length === 0) return;
+    touchStartLbX.current = e.touches[0].clientX;
+    touchCurrentLbX.current = touchStartLbX.current;
+    isSwipingLb.current = true;
+  };
+  // Clear animating flag after transition
+  useEffect(() => {
+    if (!animating) return;
+    const t = setTimeout(() => {
+      setAnimating(false);
+      setPrevLightboxIndex(null);
+    }, 340);
+    return () => clearTimeout(t);
+  }, [animating]);
+
+  const onLightboxTouchMove = (e) => {
+    if (!isSwipingLb.current) return;
+    touchCurrentLbX.current = e.touches[0].clientX;
+  };
+
+  const onLightboxTouchEnd = () => {
+    if (!isSwipingLb.current) return;
+    const dx = (touchCurrentLbX.current || 0) - (touchStartLbX.current || 0);
+    const threshold = 50;
+    if (Math.abs(dx) > threshold) {
+      if (dx > 0) lbPrev(); else lbNext();
+    }
+    isSwipingLb.current = false;
+    touchStartLbX.current = null;
+    touchCurrentLbX.current = null;
+  };
   const [ablyClient, setAblyClient] = useState(null);
   const [ablyError, setAblyError] = useState(null);
   const [isAblyConnecting, setIsAblyConnecting] = useState(false);
@@ -46,12 +126,6 @@ const ChatBoard = () => {
 
   // Get chat context
   const { isChatOpen, setIsChatOpen, targetUser, shouldCreateConversation, autoOpenConversation, resetChatState } = useChat();
-
-
-  const normalizeId = (id) => {
-    if (!id) return '';
-    return String(id).trim();
-  };
 
   // Add typing handlers with better state management
   const handleTypingStart = useCallback(() => {
@@ -332,6 +406,11 @@ const ChatBoard = () => {
           return;
         }
 
+        // Infer messageType if missing and content looks like an image
+        if (!newMessage.messageType && looksLikeImage(newMessage.content)) {
+          newMessage.messageType = 'image';
+        }
+
         setSeenMessageIds(prev => new Set(prev).add(newMessage._id));
 
         setMessages(prev => [...prev, {
@@ -472,9 +551,14 @@ const ChatBoard = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessages(data.messages);
+        // Backfill messageType for messages that contain image URLs
+        const normalized = data.messages.map(m => ({
+          ...m,
+          messageType: m.messageType || (looksLikeImage(m.content) ? 'image' : 'text')
+        }));
+        setMessages(normalized);
         // Clear seen messages when loading new conversation
-        setSeenMessageIds(new Set(data.messages.map(msg => msg._id)));
+        setSeenMessageIds(new Set(normalized.map(msg => msg._id)));
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -650,6 +734,231 @@ const ChatBoard = () => {
     }
   };
 
+  // Handle image upload and send
+  const handleImageFile = async (file) => {
+    if (!file) return;
+    if (!selectedConversation) {
+      alert('Select a conversation first');
+      return;
+    }
+
+    // basic validations
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+    if (file.size > maxSize) {
+      alert('Image too large. Max 5MB.');
+      return;
+    }
+
+    setSending(true);
+
+    const tempId = `temp-img-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;
+    const localUrl = URL.createObjectURL(file);
+    const tempMessage = {
+      _id: tempId,
+      content: localUrl,
+      senderId: {
+        _id: currentUser.id,
+        name: currentUser.user_metadata?.full_name || 'You',
+        dp: currentUser.user_metadata?.avatar_url || ''
+      },
+      createdAt: new Date().toISOString(),
+      messageType: 'image',
+      isTemp: true
+    };
+
+    setSeenMessageIds(prev => new Set(prev).add(tempId));
+    setMessages(prev => [...prev, tempMessage]);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const uploadData = await uploadRes.json();
+
+      if (!uploadData.url) {
+        throw new Error('Upload response missing url');
+      }
+
+      // Send chat message referencing uploaded image URL
+      const response = await fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: selectedConversation._id,
+          senderId: currentUser.id,
+          content: uploadData.url,
+          messageType: 'image'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send image message');
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSeenMessageIds(prev => new Set(prev).add(data.message._id));
+
+        // Replace temp message
+        setMessages(prev => prev.map(msg => msg._id === tempId ? data.message : msg));
+
+        // Update conversation list last message
+        setConversations(prev => prev.map(conv =>
+          conv._id === selectedConversation._id ? {
+            ...conv,
+            lastMessage: {
+              content: '[Image]',
+              timestamp: new Date(),
+              senderId: currentUser.id
+            }
+          } : conv
+        ));
+
+        // Publish to Ably
+        if (ablyChannelRef.current && ablyClient.connection.state === 'connected') {
+          try {
+            await ablyChannelRef.current.publish("message", {
+              _id: data.message._id,
+              conversationId: data.message.conversationId,
+              senderId: data.message.senderId._id,
+              senderName: data.message.senderId.name,
+              senderDp: data.message.senderId.dp,
+              content: data.message.content,
+              messageType: data.message.messageType,
+              createdAt: data.message.createdAt
+            });
+          } catch (publishError) {
+            console.error('Failed to publish image to Ably:', publishError);
+          }
+        }
+      } else {
+        throw new Error('Server failed to create message');
+      }
+    } catch (error) {
+      console.error('Error uploading/sending image:', error);
+      // remove temp
+      setMessages(prev => prev.filter(m => m._id !== tempId));
+      alert('Failed to send image. Please try again.');
+    } finally {
+      setSending(false);
+      // revoke local URL
+      URL.revokeObjectURL(localUrl);
+    }
+  };
+
+  // Share the image currently open in lightbox as an image message (upload the blob and send)
+  const shareImageFromLightbox = async () => {
+    if (!imageMessages[lightboxIndex]) return;
+    if (!selectedConversation) {
+      alert('Select a conversation first to share the image');
+      return;
+    }
+
+    try {
+      // create a temp message immediately so user sees image + loader in chat
+      const imageUrl = imageMessages[lightboxIndex].content;
+      const tempId = `temp-share-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;
+      const tempMessage = {
+        _id: tempId,
+        content: imageUrl,
+        senderId: {
+          _id: currentUser.id,
+          name: currentUser.user_metadata?.full_name || 'You',
+          dp: currentUser.user_metadata?.avatar_url || ''
+        },
+        createdAt: new Date().toISOString(),
+        messageType: 'image',
+        isTemp: true,
+        isUploading: true
+      };
+
+      setSeenMessageIds(prev => new Set(prev).add(tempId));
+      setMessages(prev => [...prev, tempMessage]);
+      setSending(true);
+
+      // fetch the image as blob
+      const res = await fetch(imageUrl);
+      if (!res.ok) throw new Error('Failed to fetch image');
+      const blob = await res.blob();
+
+      // upload the blob to our /api/upload
+      const formData = new FormData();
+      // attempt to derive filename
+      const filename = imageUrl.split('/').pop().split('?')[0] || `image-${Date.now()}.jpg`;
+      const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+      formData.append('file', file);
+
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (!uploadRes.ok) throw new Error('Upload failed');
+      const uploadData = await uploadRes.json();
+      if (!uploadData.url) throw new Error('Upload response missing url');
+
+      // send message referencing uploaded url
+      const response = await fetch('/api/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: selectedConversation._id,
+          senderId: currentUser.id,
+          content: uploadData.url,
+          messageType: 'image'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to send image message');
+
+      const data = await response.json();
+      if (data.success) {
+        setSeenMessageIds(prev => new Set(prev).add(data.message._id));
+
+        // Replace temp message with server message
+        setMessages(prev => prev.map(msg => msg._id === tempId ? data.message : msg));
+
+        // Publish to Ably
+        if (ablyChannelRef.current && ablyClient.connection.state === 'connected') {
+          try {
+            await ablyChannelRef.current.publish('message', {
+              _id: data.message._id,
+              conversationId: data.message.conversationId,
+              senderId: data.message.senderId._id,
+              senderName: data.message.senderId.name,
+              senderDp: data.message.senderId.dp,
+              content: data.message.content,
+              messageType: data.message.messageType,
+              createdAt: data.message.createdAt
+            });
+          } catch (err) {
+            console.error('Failed to publish shared image:', err);
+          }
+        }
+
+        // update conversations lastMessage
+        setConversations(prev => prev.map(conv => conv._id === selectedConversation._id ? { ...conv, lastMessage: { content: '[Image]', timestamp: new Date(), senderId: currentUser.id } } : conv));
+      }
+    } catch (error) {
+      console.error('Error sharing image from lightbox:', error);
+      // remove temp message if exists
+      setMessages(prev => prev.filter(m => !m.isTemp || !m._id.startsWith('temp-share-')));
+      alert('Failed to share image.');
+    } finally {
+      setSending(false);
+    }
+  };
+
   // Auto-open conversation handling
   const handleAutoOpenConversation = async (user) => {
     try {
@@ -676,13 +985,6 @@ const ChatBoard = () => {
   };
 
 
-
-  // Handle new chat selection
-  const handleNewChatSelect = async (user) => {
-    await createConversation(user._id);
-    setSearchQuery('');
-    setSearchResults([]);
-  };
 
   // Handle close
   const handleClose = () => {
@@ -721,6 +1023,20 @@ const ChatBoard = () => {
       return 'Yesterday';
     } else {
       return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
+
+  // Heuristic to detect image URLs (Cloudinary or common image extensions)
+  const looksLikeImage = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    try {
+      // quick extension check
+      if (/\.(jpe?g|png|gif|webp|avif|svg)(\?.*)?$/i.test(url)) return true;
+      // Cloudinary urls often contain 'res.cloudinary.com' and deliver images
+      if (url.includes('res.cloudinary.com')) return true;
+      return false;
+    } catch (e) {
+      return false;
     }
   };
 
@@ -859,246 +1175,35 @@ const ChatBoard = () => {
 
   return (
     <>
-      {/* Background overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-transparent bg-opacity-20 z-40" />
-      )}
+      {isOpen && (<div className="fixed inset-0 bg-transparent bg-opacity-20 z-40" />)}
 
-      {/* Chat Container */}
       <div className="fixed bottom-4 right-4 z-50">
-        {/* Chat Button */}
         {!isOpen && (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"
-          >
-            <MessageCircle size={24} />
-          </button>
+          <button onClick={() => setIsOpen(true)} className="bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110"><MessageCircle size={24} /></button>
         )}
 
-        {/* Chat Interface */}
         {isOpen && (
           <div className="bg-white rounded-lg shadow-2xl w-80 sm:w-96 h-96 sm:h-[500px] flex flex-col overflow-hidden border">
-            {/* Error Display */}
-            {ablyError && (
-              <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 text-xs">
-                {ablyError}
-              </div>
-            )}
+            {ablyError && (<div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 text-xs">{ablyError}</div>)}
 
-            {/* Conversations List View */}
             {currentView === 'contacts' && (
-              <>
-                {/* Header */}
-                <div className="bg-green-600 text-white p-3 sm:p-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Chats</h2>
-                  <div className="flex items-center space-x-2">
-                    <button className="p-1 hover:bg-green-700 rounded hidden sm:block">
-                      <MoreVertical size={18} />
-                    </button>
-                    <button
-                      onClick={handleClose}
-                      className="p-1 hover:bg-green-700 rounded"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Conversations List */}
-                <div className="flex-1 overflow-y-auto">
-                  {loading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-gray-500">Loading chats...</div>
-                    </div>
-                  ) : conversations.length > 0 ? (
-                    conversations.map((conversation) => {
-                      const otherParticipant = getOtherParticipant(conversation);
-                      if (!otherParticipant) return null;
-
-                      return (
-                        <div
-                          key={conversation._id}
-                          onClick={() => handleConversationSelect(conversation)}
-                          className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              {otherParticipant.dp ? (
-                                <img
-                                  src={otherParticipant.dp}
-                                  alt={otherParticipant.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                                  {otherParticipant.name?.charAt(0)?.toUpperCase() || '?'}
-                                </div>
-                              )}
-                              {/* Online status indicator */}
-                              {isUserOnline(otherParticipant._id) && (
-                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-sm text-gray-900 truncate">
-                                  {otherParticipant.name}
-                                </h3>
-                                <span className="text-xs text-gray-500">
-                                  {conversation.lastMessage?.timestamp && formatTimestamp(conversation.lastMessage.timestamp)}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                {typingUsers[otherParticipant._id] ? (
-                                  <p className="text-sm text-green-600 italic truncate">
-                                    Typing...
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-gray-600 truncate">
-                                    {conversation.lastMessage?.content || 'No messages yet'}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                      <MessageCircle size={48} className="mb-4 text-gray-300" />
-                      <p className="text-center px-4">No conversations yet</p>
-                      <button
-                        onClick={() => setCurrentView('newChat')}
-                        className="mt-2 text-green-600 hover:text-green-700"
-                      >
-                        Start a new chat
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
+              <ConversationsList loading={loading} conversations={conversations} getOtherParticipant={getOtherParticipant} handleConversationSelect={handleConversationSelect} isUserOnline={isUserOnline} typingUsers={typingUsers} formatTimestamp={formatTimestamp} />
             )}
 
-
-            {/* Individual Chat View */}
             {currentView === 'chat' && selectedContact && selectedConversation && (
               <>
-                {/* Chat Header */}
-                <div className="bg-green-600 text-white p-3 sm:p-4 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={handleBackToContacts}
-                      className="p-1 hover:bg-green-700 rounded"
-                    >
-                      <ArrowLeft size={18} />
-                    </button>
-                    {selectedContact.dp ? (
-                      <img
-                        src={selectedContact.dp}
-                        alt={selectedContact.name}
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                        {selectedContact.name?.charAt(0)?.toUpperCase() || '?'}
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-semibold text-sm sm:text-base">{selectedContact.name}</h3>
-                      <p className="text-xs text-green-100">
-                        {isUserOnline(selectedContact._id) ? 'Online' : 'Offline'}
-                        {typingUsers[selectedContact._id] && ' • Typing...'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="p-1 hover:bg-green-700 rounded hidden sm:block">
-                      <MoreVertical size={18} />
-                    </button>
-                  </div>
-                </div>
+                <ChatHeader selectedContact={selectedContact} handleBackToContacts={handleBackToContacts} isUserOnline={isUserOnline} />
 
-                {/* Messages Container */}
-                <div
-                  className="flex-1 p-3 sm:p-4 overflow-y-auto bg-gray-50"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f0f0f0' fill-opacity='0.3'%3E%3Cpath d='m0 0h40v40h-40z'/%3E%3C/g%3E%3C/svg%3E")`
-                  }}
-                >
-                  <div className="space-y-3">
-                    {messages.map((msg, index) => {
-                      const isMe = msg.senderId._id === currentUser.id || msg.senderId === currentUser.id;
-                      const sender = typeof msg.senderId === 'object' ? msg.senderId : { name: 'Unknown' };
-                      const uniqueKey = `${msg._id}-${msg.createdAt}-${index}`;
+                <MessagesContainer messages={messages} currentUser={currentUser} imageMessages={imageMessages} setLightboxIndex={setLightboxIndex} setLightboxOpen={setLightboxOpen} formatTimestamp={formatTimestamp} messagesEndRef={messagesEndRef} />
 
-                      return (
-                        <div
-                          key={uniqueKey}
-                          className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className="flex items-end space-x-2 max-w-xs">
-                            {!isMe && (
-                              <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white font-semibold mb-1">
-                                {sender.name?.charAt(0)?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                            <div
-                              className={`px-3 py-2 rounded-lg ${isMe
-                                ? 'bg-green-500 text-white rounded-br-none'
-                                : 'bg-white text-gray-800 rounded-bl-none shadow-sm'
-                                }`}
-                            >
-                              <p className="text-sm">{msg.content}</p>
-                              <p className={`text-xs mt-1 ${isMe ? 'text-green-100' : 'text-gray-500'
-                                }`}>
-                                {formatTimestamp(msg.createdAt)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <div ref={messagesEndRef} />
-                  </div>
-                </div>
-
-                {/* Input Area */}
-                <div className="p-3 sm:p-4 bg-gray-100 border-t">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        value={message}
-                        onChange={(e) => {
-                          setMessage(e.target.value);
-                          if (e.target.value.trim()) {
-                            handleTypingStart();
-                          } else {
-                            handleTypingStop();
-                          }
-                        }}
-                        onKeyPress={handleKeyPress}
-                        onBlur={handleTypingStop}
-                        placeholder="Type a message..."
-                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent text-sm disabled:opacity-50"
-                      />
-                    </div>
-                    <button
-                      onClick={handleSendMessage}
-                      disabled={sending || !message.trim()}
-                      className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors disabled:opacity-50"
-                    >
-                      <Send size={18} />
-                    </button>
-                  </div>
-                </div>
+                <MessageInput fileInputRef={fileInputRef} handleImageFile={handleImageFile} message={message} setMessage={setMessage} handleTypingStart={handleTypingStart} handleTypingStop={handleTypingStop} handleSendMessage={handleSendMessage} sending={sending} />
               </>
             )}
           </div>
         )}
       </div>
+
+      <LightboxOverlay lightboxOpen={lightboxOpen} imageMessages={imageMessages} lightboxIndex={lightboxIndex} setLightboxOpen={setLightboxOpen} sending={sending} lbPrev={lbPrev} lbNext={lbNext} onLightboxTouchStart={onLightboxTouchStart} onLightboxTouchMove={onLightboxTouchMove} onLightboxTouchEnd={onLightboxTouchEnd} prevLightboxIndex={prevLightboxIndex} animateDirection={animateDirection} animating={animating} />
     </>
   );
 };

@@ -401,7 +401,7 @@ const NewProfilePage = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900  dark:text-gray-100">
       <Navbar />
-      <header className="relative h-40 mt-8 md:h-50 md:max-w-4xl max-w-83 m-auto  bg-gray-100 dark:bg-gray-800">
+      <header className="relative h-26 md:mt-25 mt-14 md:h-40 md:max-w-4xl max-w-83 m-auto  bg-gray-100 dark:bg-gray-800">
         <div className="h-full w-full bg-black/20">
           {userInfo.coverdp && (
             <img
@@ -438,7 +438,7 @@ const NewProfilePage = () => {
               
               <div className="relative z-10">
                 <div className="relative">
-                  <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-900 shadow-lg">
+                  <Avatar className="md:w-32 md:h-32 w-28 h-28 border-4 border-white dark:border-gray-900 shadow-lg">
                     <AvatarImage
                       src={getImageSrc(userInfo.dp) || 'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=387&q=80'}
                       alt={userInfo.name}
