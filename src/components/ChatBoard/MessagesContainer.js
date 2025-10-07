@@ -15,19 +15,26 @@ export default function MessagesContainer({ messages, currentUser, imageMessages
                   <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white font-semibold mb-1">{sender.name?.charAt(0)?.toUpperCase() || '?'}</div>
                 )}
                 <div className={`px-1 py-1 rounded-lg ${isMe ? 'bg-green-600 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none shadow-sm'}`}>
-                  {msg.messageType === 'image' ? (
-                    <div className="max-w-xs">
-                      <img src={msg.content} alt="sent image" className="rounded-md max-h-60 w-auto object-cover cursor-pointer" onClick={() => {
-                        const idx = imageMessages.findIndex(im => im._id === msg._id);
-                        if (idx >= 0) { setLightboxIndex(idx); setLightboxOpen(true); }
-                      }} />
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-sm">{msg.content}</p>
-                      <p className={`text-xs mt-1 ${isMe ? 'text-green-100' : 'text-gray-500'}`}>{formatTimestamp(msg.createdAt)}</p>
-                    </>
-                  )}
+                    {msg.messageType === 'image' ? (
+                      <div className="max-w-xs">
+                        <div className="relative inline-block">
+                          <img src={msg.content} alt="sent image" className="rounded-md max-h-60 w-auto object-cover cursor-pointer" onClick={() => {
+                            const idx = imageMessages.findIndex(im => im._id === msg._id);
+                            if (idx >= 0) { setLightboxIndex(idx); setLightboxOpen(true); }
+                          }} />
+                          {msg.isUploading && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-md">
+                              <div className="text-white text-sm">{msg.uploadProgress || 0}%</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm">{msg.content}</p>
+                        <p className={`text-xs mt-1 ${isMe ? 'text-green-100' : 'text-gray-500'}`}>{formatTimestamp(msg.createdAt)}</p>
+                      </>
+                    )}
                 </div>
               </div>
             </div>

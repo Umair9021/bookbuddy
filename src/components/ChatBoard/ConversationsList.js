@@ -1,4 +1,5 @@
 import React from 'react';
+import { X } from 'lucide-react';
 
 export default function ConversationsList({
   loading,
@@ -8,13 +9,16 @@ export default function ConversationsList({
   isUserOnline,
   typingUsers,
   formatTimestamp
+  , onClose
 }) {
   return (
     <>
       <div className="bg-green-600 text-white p-3 sm:p-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Chats</h2>
         <div className="flex items-center space-x-2">
-          <button className="p-1 hover:bg-green-700 rounded hidden sm:block">...</button>
+          <button onClick={onClose} className="p-1 hover:bg-green-700 rounded  " title="Close chat">
+            <X size={16} />
+          </button>
         </div>
       </div>
 

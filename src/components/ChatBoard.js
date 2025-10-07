@@ -117,6 +117,7 @@ const ChatBoard = () => {
   const [typingUsers, setTypingUsers] = useState({});
   const [seenMessageIds, setSeenMessageIds] = useState(new Set());
   const [connectionState, setConnectionState] = useState('disconnected');
+  
 
   // Refs for cleanup tracking
   const presenceChannelRef = useRef(null);
@@ -767,26 +768,77 @@ const ChatBoard = () => {
       },
       createdAt: new Date().toISOString(),
       messageType: 'image',
-      isTemp: true
+      isTemp: true,
+      isUploading: true,
+      uploadProgress: 0
     };
 
     setSeenMessageIds(prev => new Set(prev).add(tempId));
     setMessages(prev => [...prev, tempMessage]);
 
     try {
+      // Compress image client-side to reduce upload time
+      const compressImage = (file, maxWidth = 1280, quality = 0.8) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const scale = Math.min(1, maxWidth / img.width);
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Canvas toBlob failed'));
+            }, 'image/jpeg', quality);
+          };
+          img.onerror = (e) => reject(e);
+          // detect orientation via URL or FileReader
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            img.src = ev.target.result;
+          };
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(file);
+        });
+      };
+
+      const compressedBlob = await compressImage(file, 1280, 0.8);
+      const uploadFile = new File([compressedBlob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+
+      // Upload via XHR to get progress
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', uploadFile);
 
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const uploadData = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload');
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            // update temp message progress
+            setMessages(prev => prev.map(m => m._id === tempId ? { ...m, uploadProgress: percent } : m));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const json = JSON.parse(xhr.responseText);
+              resolve(json);
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Upload failed'));
+        xhr.send(formData);
       });
-
-      if (!uploadRes.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const uploadData = await uploadRes.json();
 
       if (!uploadData.url) {
         throw new Error('Upload response missing url');
@@ -810,11 +862,11 @@ const ChatBoard = () => {
 
       const data = await response.json();
 
-      if (data.success) {
-        setSeenMessageIds(prev => new Set(prev).add(data.message._id));
+  if (data.success) {
+  setSeenMessageIds(prev => new Set(prev).add(data.message._id));
 
-        // Replace temp message
-        setMessages(prev => prev.map(msg => msg._id === tempId ? data.message : msg));
+  // Replace temp message
+  setMessages(prev => prev.map(msg => msg._id === tempId ? data.message : msg));
 
         // Update conversation list last message
         setConversations(prev => prev.map(conv =>
@@ -997,6 +1049,9 @@ const ChatBoard = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Audio recording handlers
+  
 
   // Handle key press
   const handleKeyPress = (e) => {
@@ -1187,7 +1242,7 @@ const ChatBoard = () => {
             {ablyError && (<div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 text-xs">{ablyError}</div>)}
 
             {currentView === 'contacts' && (
-              <ConversationsList loading={loading} conversations={conversations} getOtherParticipant={getOtherParticipant} handleConversationSelect={handleConversationSelect} isUserOnline={isUserOnline} typingUsers={typingUsers} formatTimestamp={formatTimestamp} />
+              <ConversationsList loading={loading} conversations={conversations} getOtherParticipant={getOtherParticipant} handleConversationSelect={handleConversationSelect} isUserOnline={isUserOnline} typingUsers={typingUsers} formatTimestamp={formatTimestamp} onClose={handleClose} />
             )}
 
             {currentView === 'chat' && selectedContact && selectedConversation && (
