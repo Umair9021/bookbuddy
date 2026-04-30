@@ -777,7 +777,6 @@ const ChatBoard = () => {
     setMessages(prev => [...prev, tempMessage]);
 
     try {
-      // Compress image client-side to reduce upload time
       const compressImage = (file, maxWidth = 1280, quality = 0.8) => {
         return new Promise((resolve, reject) => {
           const img = new Image();
