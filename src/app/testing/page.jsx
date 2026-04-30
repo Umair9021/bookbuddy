@@ -525,7 +525,7 @@ function ProjectCard({ project, darkMode }) {
         </div>
 
         <div className="mt-6 flex items-center justify-between">
-          <a className="text-sm font-medium underline" href="#">View details</a>
+          <button type="button" className="text-sm font-medium underline">View details</button>
           <div className="flex gap-2 items-center">
             <button className="px-3 py-2 rounded-md border">Live</button>
             <button className="px-3 py-2 rounded-md border">Repo</button>
