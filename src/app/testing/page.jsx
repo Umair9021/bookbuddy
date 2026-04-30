@@ -443,16 +443,16 @@ export default function Portfolio() {
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium">Name</label>
-                    <input value={formData.name} onChange={(e) => setFormData((s) => ({ ...s, name: e.target.value }))} className="mt-2 w-full rounded-md px-3 py-2 border" placeholder="Your name" />
+                    <label htmlFor="name" className="block text-sm font-medium">Name</label>
+                    <input id="name" autoComplete="name" value={formData.name} onChange={(e) => setFormData((s) => ({ ...s, name: e.target.value }))} className="mt-2 w-full rounded-md px-3 py-2 border" placeholder="Your name" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium">Email</label>
-                    <input value={formData.email} onChange={(e) => setFormData((s) => ({ ...s, email: e.target.value }))} className="mt-2 w-full rounded-md px-3 py-2 border" placeholder="you@example.com" />
+                    <label htmlFor="email" className="block text-sm font-medium">Email</label>
+                    <input id="email" type="email" autoComplete="email" value={formData.email} onChange={(e) => setFormData((s) => ({ ...s, email: e.target.value }))} className="mt-2 w-full rounded-md px-3 py-2 border" placeholder="you@example.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium">Message</label>
-                    <textarea value={formData.message} onChange={(e) => setFormData((s) => ({ ...s, message: e.target.value }))} rows={5} className="mt-2 w-full rounded-md px-3 py-2 border" placeholder="Tell me about your project..." />
+                    <label htmlFor="message" className="block text-sm font-medium">Message</label>
+                    <textarea id="message" autoComplete="off" value={formData.message} onChange={(e) => setFormData((s) => ({ ...s, message: e.target.value }))} rows={5} className="mt-2 w-full rounded-md px-3 py-2 border" placeholder="Tell me about your project..." />
                   </div>
 
                   <Button onClick={handleSubmit} className="w-full">Send Message</Button>
