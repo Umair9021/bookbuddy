@@ -4,10 +4,10 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Moon, Sun, Menu, X, Mail, Github, Linkedin, ExternalLink, Code, Briefcase, User, MessageSquare, ArrowRight, Star, Zap, Sparkles } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Moon, Sun, Menu, X, Mail, Github, Linkedin, Code, MessageSquare, ArrowRight, Star, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function Portfolio() {
   const [darkMode, setDarkMode] = useState(true);
